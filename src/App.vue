@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" data-app>
     <img alt="Vue logo" src="./assets/logo.png" class="logo">
     <div class="header">
       <h2>{{ msg }}</h2>
@@ -22,7 +22,7 @@ export default {
     }
   },
   components: {
-    Birds,
+    Birds
   }
 };
 

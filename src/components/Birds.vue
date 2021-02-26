@@ -1,10 +1,10 @@
 <template>
     <div class="birds_wrapper">
-        <button @click="shuffle">Shuffle</button>
         <transition-group name="image-list" class="birds" appear>
-            <Bird v-for="b in birds" v-bind:key="b.url" v-bind:url="b.url"></Bird>
+            <Bird v-for="b in birds" v-bind:key="b.url" v-bind:bird="b" v-on:openModal="openModal" ></Bird>
         </transition-group>
-        <Dialog v-bind:dialog="dialog"/>
+        <Dialog v-bind:dialog="dialog" v-bind:bird="selectedBird" v-on:closeModal="closeModal"/>
+        <button @click="shuffle">Shuffle</button>
     </div>
 </template>
 
@@ -39,6 +39,7 @@ export default {
                   'regions': []
                 }
             ],
+            selectedBird: null,
             dialog: false
         }
     },
@@ -48,7 +49,14 @@ export default {
     },
     methods: {
         shuffle: function () {
-            this.birds = _.shuffle(this.birds)
+          this.birds = _.shuffle(this.birds)
+        },
+        openModal: function(bird) {
+          if (bird) this.selectedBird = bird
+          this.dialog = true
+        },
+        closeModal: function() {
+          this.dialog = false
         }
     }
 };

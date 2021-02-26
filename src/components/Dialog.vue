@@ -1,33 +1,46 @@
 <template>
-    <v-col cols="auto">
-      <v-dialog
-        transition="dialog-bottom-transition"
-        max-width="600"
+  <v-dialog
+    v-model="dialog"
+    fullscreen
+    hide-overlay
+    transition="dialog-bottom-transition"
+    content-class="image_dialog"
+  >
+    <v-card>
+      <v-toolbar
+        dark
+        color="primary"
       >
-        <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          icon
+          dark
+          @click="$emit('closeModal')"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+        <v-toolbar-title>Nice image</v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-toolbar-items>
           <v-btn
-            color="primary"
-            v-bind="attrs"
-            v-on="on"
-          >From the bottom</v-btn>
-        </template>
-        <template v-slot:default="dialog">
-          <v-card>
-            <v-toolbar
-              color="primary"
-              dark
-            >Opening from the bottom</v-toolbar>
-            <v-card-text>
-              <div class="text-h2 pa-12">Hello world!</div>
-            </v-card-text>
-            <v-card-actions class="justify-end">
-              <v-btn
-                text
-                @click="dialog.value = false"
-              >Close</v-btn>
-            </v-card-actions>
-          </v-card>
-        </template>
-      </v-dialog>
-    </v-col>
+            dark
+            text
+            @click="$emit('closeModal')"
+          >
+            Close
+          </v-btn>
+        </v-toolbar-items>
+      </v-toolbar>
+      <v-subheader>Aguilucho.jpg</v-subheader>
+      <v-divider></v-divider>
+      <Bird v-if="bird" v-bind:key="bird.url" v-bind:bird="bird" v-bind:raw="true" v-bind:dialog="true"></Bird>
+    </v-card>
+  </v-dialog>
 </template>
+
+<script>
+  import Bird from './Bird.vue';
+  export default {
+    props: ['dialog', 'bird'],
+    components: { Bird }
+  };
+</script>
