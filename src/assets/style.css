@@ -14,40 +14,67 @@
 #app .header {
     display: inline-block;
 }
+#app .birds_wrapper {
+    margin-top: 40px;
+}
 #app .birds {
-    margin-top: 50px;
+    margin: 0 auto;
+    margin-top: 10px;
+    width: 900px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 }
 #app .birds .image_wrapper {
     height: 150px;
-    min-width: 150px;
+    width: 150px;
     border: 1px solid #2c3e50;
     border-radius: 5px;
-    display: inline-flex;
-    margin: 5px;
+    margin: 0 auto;
     cursor: pointer;
 }
-#app .birds .image_wrapper img {
-    max-height: 150px;
+#app .birds .image_wrapper img{
+    height: 100%;
     max-width: 150px;
+    vertical-align: middle;
     object-fit: contain;
     width: 100%;
 }
+#app .birds .image_wrapper .loading {
+    position: relative;
+    top: 45%;
+}
 #app .footer {
     text-align: center;
-    position: absolute;
+    position: fixed;
+    left: 0;
     bottom: 0;
-    width: 99%;
+    width: 100%;
     height: 90px;
 }
 #app .bigml_link {
     width: 90px;
-    float: right;
     display: block;
-    margin-right: 20px;
+    margin: 0 auto;
 }
 #app .bigml_link span {
     height: 90px;
     display: block;
     background: url(bigml_small.png) no-repeat right;
     background-size: 80px;
+}
+.image-list-enter-active, .image-list-leave-active {
+    transition: all 1s;
+}
+.image-list-enter, .image-list-leave-to {
+    opacity: 0;
+    transform: translateY(30px);
+}
+.image-list-move {
+    transition: transform 1s;
+}
+.image-fade-enter-active, .image-fade-leave-active {
+    transition: opacity .5s ease;
+}
+.image-fade-enter, .image-fade-leave-to {
+    opacity: 0;
 }

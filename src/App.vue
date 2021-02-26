@@ -18,11 +18,11 @@ export default {
   data: function() {
     return {
       msg: "Vue.js and bounding boxes with D3",
-      bigmlUrl: "https://bigml.com"
+      bigmlUrl: "https://bigml.com",
     }
   },
   components: {
-    Birds
+    Birds,
   }
 };
 
