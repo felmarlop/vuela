@@ -20,6 +20,6 @@ const fs = require("fs");
   } catch (e) {
     // eslint-disable-next-line no-console
     console.log(e.message);
-    process.exit(1);
+    process.exit(1)
   }
 })();

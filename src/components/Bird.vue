@@ -1,42 +1,46 @@
 <template>
   <div class="image_wrapper">
     <transition name="image-fade">
-        <img v-show="isLoaded" :src="birdUrl" @load="loaded" @error="error" @click="openModal">
+      <img :src="birdUrl" @load="loaded" @error="error" @click="openModal" v-show="isLoaded" />
     </transition>
-    <div v-if="isError" class="loading">Error happened loading the image...</div>
-    <div v-else v-show="!isLoaded" class="loading">Loading...</div>
+    <div class="loading" v-if="isError">Error happened loading the image...</div>
+    <div class="loading" v-else v-show="!isLoaded">Loading...</div>
   </div>
 </template>
 
 <script>
 export default {
-    name: 'Bird',
-    props: ['bird', 'raw', 'dialog'],
-    data: function() {
-        return {
-            isLoaded: false,
-            isError: false
-        }
+  name: 'Bird',
+  props: {
+    bird: {
+      type: Object,
+      default: null
     },
-    computed: {
-        birdUrl: function() {
-            return (this.raw) ?
-                this.bird.url.replace('image', 'image/raw') : this.bird.url
-        }
-    },
-    methods: {
-        openModal: function() {
-            console.log(this.dialog);
-            if (this.dialog) return false;
-            this.$emit('openModal', this.bird)
-        },
-        loaded: function() {
-            this.isLoaded = true
-        },
-        error: function() {
-            console.log("ssss")
-            this.isError = true
-        }
+    raw: Boolean,
+    expanded: Boolean
+  },
+  data: function () {
+    return {
+      isLoaded: false,
+      isError: false
     }
-};
+  },
+  computed: {
+    birdUrl: function () {
+      return this.raw ? this.bird.url.replace('image', 'image/raw') : this.bird.url
+    }
+  },
+  methods: {
+    openModal: function () {
+      if (this.expanded) return false
+      this.$emit('open-modal', this.bird)
+    },
+    loaded: function () {
+      this.isLoaded = true
+    },
+    error: function () {
+      this.isError = true
+    }
+  }
+}
 </script>

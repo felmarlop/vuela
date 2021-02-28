@@ -20,16 +20,16 @@
 #app .birds {
     margin: 0 auto;
     margin-bottom: 10px;
-    width: 900px;
+    width: 500px;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
 }
 #app .birds .image_wrapper {
     height: 150px;
     width: 150px;
     border: 1px solid #2c3e50;
     border-radius: 5px;
-    margin: 0 auto;
+    margin: 10px auto;
     cursor: pointer;
 }
 #app .image_dialog .image_wrapper {
@@ -40,7 +40,11 @@
     max-width: 150px;
     vertical-align: middle;
     object-fit: contain;
-    width: 100%;
+}
+#app .image_dialog .image_wrapper img{
+    max-width: 900px;
+    vertical-align: middle;
+    object-fit: contain;
 }
 #app .birds .image_wrapper .loading {
     position: relative;
@@ -62,7 +66,7 @@
 #app .bigml_link span {
     height: 90px;
     display: block;
-    background: url(bigml_small.png) no-repeat right;
+    background: url(../assets/bigml_small.png) no-repeat right;
     background-size: 80px;
 }
 .image-list-enter-active, .image-list-leave-active {
