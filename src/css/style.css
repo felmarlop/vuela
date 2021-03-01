@@ -32,10 +32,24 @@
     margin: 10px auto;
     cursor: pointer;
 }
+#app .image_dialog .overlay_wrapper {
+    z-index: 3;
+    position: absolute;
+}
+#app .image_dialog .overlay {
+    fill: none;
+    pointer-events: all;
+    z-index: 3;
+}
 #app .image_dialog .image_wrapper {
     margin: 20px 0 0 0;
 }
-#app .birds .image_wrapper img{
+#app .image_dialog .image_wrapper img {
+    width: 900px;
+    max-width: 900px;
+    vertical-align: middle;
+}
+#app .birds .image_wrapper img {
     height: 100%;
     max-width: 150px;
     vertical-align: middle;

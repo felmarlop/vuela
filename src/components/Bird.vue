@@ -1,6 +1,6 @@
 <template>
   <div class="image_wrapper">
-    <transition name="image-fade">
+    <transition name="image-fade" @afterEnter="addOverlay">
       <img :src="birdUrl" @load="loaded" @error="error" @click="openModal" v-show="isLoaded" />
     </transition>
     <div class="loading" v-if="isError">Error happened loading the image...</div>
@@ -9,6 +9,7 @@
 </template>
 
 <script>
+import * as d3 from 'd3'
 export default {
   name: 'Bird',
   props: {
@@ -37,6 +38,50 @@ export default {
     },
     loaded: function () {
       this.isLoaded = true
+    },
+    addOverlay: function (el) {
+      if (!el || !this.expanded) return false
+      let _g = d3
+        .select(el.parentElement)
+        .append('svg')
+        .attr('id', 'svg_')
+        .attr('class', 'overlay_wrapper')
+        .attr('width', el.width)
+        .attr('height', el.height)
+        .style('top', el.offsetTop)
+        .style('left', el.offsetLeft)
+        .append('g')
+        .attr('id', 'g_')
+      _g.append('rect')
+        .attr('class', 'overlay')
+        .attr('width', el.width)
+        .attr('height', el.height)
+        .style('fill', 'none')
+        .on('mousemove', function (event) {
+          console.log(d3.pointer(event))
+        })
+      _g.selectAll('rect.region')
+        .data(this.bird.regions)
+        .enter()
+        .append('rect')
+        .attr('class', 'region')
+        .attr('stroke', '#284400')
+        .attr('fill', '#284400')
+        .attr('stroke-width', '2px')
+        .attr('fill-opacity', 0.2)
+        .attr('x', function (d) {
+          return d[0]
+        })
+        .attr('y', function (d) {
+          return d[1]
+        })
+        .transition()
+        .attr('width', function (d) {
+          return d[2]
+        })
+        .attr('height', function (d) {
+          return d[3]
+        })
     },
     error: function () {
       this.isError = true
