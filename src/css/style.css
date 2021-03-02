@@ -126,7 +126,7 @@
 }
 #app .birds .image_wrapper img {
     height: 100%;
-    max-width: 150px;
+    max-width: 148px;
     vertical-align: middle;
     object-fit: contain;
 }
