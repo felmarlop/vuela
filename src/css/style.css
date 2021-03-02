@@ -40,13 +40,88 @@
     fill: none;
     pointer-events: all;
     z-index: 3;
+    cursor: crosshair;
 }
 #app .image_dialog .image_wrapper {
-    margin: 20px 0 0 0;
+    margin: 20px 0 20px 0;
 }
 #app .image_dialog .image_wrapper img {
     width: 900px;
     max-width: 900px;
+    vertical-align: middle;
+}
+#app .image_dialog .buttons_img {
+    float: left;
+    width: 100%;
+    text-align: center;
+    padding: 15px 5px 5px 5px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    position: relative;
+    background: #272727;
+}
+#app .image_dialog .buttons_img div.group_ico {
+    display: inline-block;
+    position: relative;
+    text-align: center;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+#app .image_dialog .buttons_img div.ico {
+    width: 28px;
+    height: 28px;
+    border-radius: 3px;
+    margin-right: 5px;
+    display: inline-block;
+    vertical-align: middle;
+}
+#app .image_dialog .buttons_img div.ico.active {
+    background-color: #779E2B;
+}
+#app .image_dialog .buttons_img div.ico:hover {
+    background-color: #779E2B;
+}
+#app .image_dialog .buttons_img div.ico > span {
+    width: 28px;
+    height: 28px;
+    background-size: 26px;
+    background-position: 50% 50%;
+    display: block;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+#app .image_dialog .buttons_img div.decrease_br span {
+    background-image: url(../assets/icon_white_less_bright.svg);
+    background-position: 50% 50%;
+    background-size: 30px;
+}
+#app .image_dialog .buttons_img div.increase_br span {
+    background-image: url(../assets/icon_white_more_bright.svg);
+    background-position: 50% 50%;
+    background-size: 30px;
+}
+#app .image_dialog div.decrease_ct span {
+    background-image: url(../assets/icon_white_less_contrast.svg);
+    background-position: 50% 50%;
+    background-size: 30px;
+}
+#app .image_dialog div.increase_ct span {
+    background-image: url(../assets/icon_white_more_contrast.svg);
+    background-position: 50% 50%;
+    background-size: 30px;
+}
+#app .image_dialog div.reset_original span {
+    background-image: url(../assets/icon_white_reset.svg);
+    background-position: 50% 50%;
+    background-size: 30px;
+}
+#app .image_dialog .buttons_img div.group_ico .value {
+    position: absolute;
+    top: -12px;
+    color: rgba(255,255,255,0.6);
+    left: 30%;
+    width: 60px;
+    margin-left: -18px;
+    font-size: 9px;
     vertical-align: middle;
 }
 #app .birds .image_wrapper img {

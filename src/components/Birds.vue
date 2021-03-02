@@ -3,7 +3,7 @@
     <transition-group name="image-list" class="birds" appear>
       <bird :key="b.url" :bird="b" @open-modal="openModal" v-for="b in birds" />
     </transition-group>
-    <idialog :dialog="dialog" :bird="selectedBird" @close-modal="closeModal" />
+    <idialog ref="idialog" :dialog="dialog" :bird="selectedBird" @close-modal="closeModal" />
     <v-btn @click="shuffle">Shuffle</v-btn>
   </div>
 </template>
@@ -61,24 +61,24 @@ export default {
           url:
             'https://strato.dev.bigml.com/shared/source/603cd112520f907e5e00009b/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
           regions: [
-            [200, 91, 100, 100],
-            [314, 62, 100, 100]
+            [210, 90, 200, 390],
+            [540, 130, 165, 350]
           ]
         },
         {
           url:
             'https://strato.dev.bigml.com/shared/source/603d01f0520f907e510000c3/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
           regions: [
-            [137, 66, 175, 260],
-            [566, 486, 135, 205]
+            [155, 70, 200, 300],
+            [640, 540, 140, 235]
           ]
         },
         {
           url:
             'https://strato.dev.bigml.com/shared/source/603d01f0520f907e8100009b/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
           regions: [
-            [200, 91, 180, 275],
-            [314, 62, 225, 255]
+            [300, 130, 250, 415],
+            [465, 85, 325, 390]
           ]
         }
       ],
@@ -98,6 +98,7 @@ export default {
     },
     openModal: function (bird) {
       if (bird) this.selectedBird = bird
+      this.$refs.idialog.imgLoaded = false
       this.dialog = true
     },
     closeModal: function () {
