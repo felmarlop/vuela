@@ -5,6 +5,8 @@
       <h2>{{ msg }}</h2>
     </div>
     <Birds></Birds>
+    <router-link to="/user/123456789">Go to user (test)</router-link>
+    <router-view></router-view>
     <div class="footer">
       <a class="bigml_link" :href="bigmlUrl" target="_blank"><span></span></a>
     </div>

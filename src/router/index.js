@@ -1,15 +1,19 @@
+import NotFound from '../components/NotFound.vue'
+import User from '../components/User.vue'
+import UserBirds from '../components/UserBirds.vue'
+import Vue from 'vue'
 import VueRouter from 'vue-router'
 
+Vue.use(VueRouter)
+
 const routes = [
-  { path: '/foo', component: {template: '<div>foo</div>'} },
-  { path: '/bar', component: {template: '<div>bar</div>'}  }
+  { path: '*', component: NotFound },
+  { path: '/user/:name', component: User, children: [{ path: 'birds', component: UserBirds }] }
 ]
 
 const router = new VueRouter({
   mode: 'history',
-  base: '/',
-  routes,
-  linkActiveClass: 'active'
+  routes
 })
 
 export default router
