@@ -5,25 +5,41 @@
         <v-btn icon dark @click="$emit('close-modal')">
           <v-icon>mdi-close</v-icon>
         </v-btn>
-        <v-toolbar-title>Nice image</v-toolbar-title>
+        <v-toolbar-title>Nice header</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-toolbar-items>
           <v-btn dark text @click="$emit('close-modal')">Close</v-btn>
         </v-toolbar-items>
       </v-toolbar>
-      <v-subheader>Aguilucho.jpg</v-subheader>
+      <v-subheader>Nice image title</v-subheader>
       <v-divider></v-divider>
       <bird
+        ref="birdComponent"
         :key="bird.url"
         :bird="bird"
         :raw="true"
         :expanded="true"
         :styles="imgStyle"
+        :zoom="zoom"
         @image-loaded="imgLoaded = true"
+        @set-zoom="setZoom"
         v-if="bird"
       />
       <v-divider></v-divider>
       <div class="buttons_img" v-if="imgLoaded">
+        <div class="group_ico">
+          <span class="zoom_value value">Ratio: {{ zoom }}</span>
+          <div id="zoom_image" class="zoom_image fit_image ico" @click="$refs.birdComponent.resetZoom()">
+            <span></span>
+          </div>
+          <div id="zoom_image" class="zoom_image zoom_out_image ico" @click="decreaseZoom()">
+            <span></span>
+          </div>
+          <span class="divider"></span>
+          <div id="zoom_image" class="zoom_image zoom_in_image ico" @click="increaseZoom()">
+            <span></span>
+          </div>
+        </div>
         <div class="group_ico">
           <span class="brightness_value value">{{ brightness }}%</span>
           <div id="brightness_image" class="decrease_br intensity ico" @click="decreaseBrightness()">
@@ -56,9 +72,13 @@
 import Bird from './Bird.vue'
 
 const DEFAULT_LUMINOSITY = 100
+const DEFAULT_ZOOM = 1
 const LUMINOSITY_STEP = 10
 const LUMINOSITY_MAX = 300
 const LUMINOSITY_MIN = 0
+const ZOOM_STEP = 0.1
+const ZOOM_MAX = 8
+const ZOOM_MIN = 0.01
 
 export default {
   components: { bird: Bird },
@@ -73,6 +93,7 @@ export default {
     return {
       brightness: DEFAULT_LUMINOSITY,
       contrast: DEFAULT_LUMINOSITY,
+      zoom: DEFAULT_ZOOM,
       imgLoaded: false
     }
   },
@@ -84,6 +105,11 @@ export default {
     }
   },
   methods: {
+    increaseZoom: function () {
+      this.zoom += ZOOM_STEP
+      if (this.zoom > ZOOM_MAX) this.zoom = ZOOM_MAX
+      this.zoom = Math.round(this.zoom * 100) / 100
+    },
     increaseBrightness: function () {
       this.brightness += LUMINOSITY_STEP
       if (this.brightness > LUMINOSITY_MAX) this.brightness = LUMINOSITY_MAX
@@ -91,6 +117,11 @@ export default {
     increaseContrast: function () {
       this.contrast += LUMINOSITY_STEP
       if (this.contrast > LUMINOSITY_MAX) this.contrast = LUMINOSITY_MAX
+    },
+    decreaseZoom: function () {
+      this.zoom -= ZOOM_STEP
+      if (this.zoom < ZOOM_MIN) this.zoom = ZOOM_MIN
+      this.zoom = Math.round(this.zoom * 100) / 100
     },
     decreaseBrightness: function () {
       this.brightness -= LUMINOSITY_STEP
@@ -100,9 +131,15 @@ export default {
       this.contrast -= LUMINOSITY_STEP
       if (this.contrast < LUMINOSITY_MIN) this.contrast = LUMINOSITY_MIN
     },
+    setZoom: function (val) {
+      if (typeof val !== 'number' || val < ZOOM_MIN) val = ZOOM_MIN
+      if (val > ZOOM_MAX) val = ZOOM_MAX
+      this.zoom = Math.round(val * 100) / 100
+    },
     resetImage: function () {
       this.brightness = DEFAULT_LUMINOSITY
       this.contrast = DEFAULT_LUMINOSITY
+      this.$refs.birdComponent.resetZoom()
     }
   }
 }

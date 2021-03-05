@@ -103,6 +103,7 @@ export default {
     },
     closeModal: function () {
       this.dialog = false
+      this.$refs.idialog.$refs.birdComponent.resetZoom()
     }
   }
 }

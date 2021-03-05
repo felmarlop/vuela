@@ -32,6 +32,12 @@
     margin: 10px auto;
     cursor: pointer;
 }
+#app .birds .zoom_wrapper {
+    display: inline;
+}
+#app .image_dialog .zoom_wrapper {
+    justify-content: center;
+}
 #app .image_dialog .overlay_wrapper {
     z-index: 3;
     position: absolute;
@@ -43,7 +49,8 @@
     cursor: crosshair;
 }
 #app .image_dialog .image_wrapper {
-    margin: 20px 0 20px 0;
+    padding: 20px 0 20px 0;
+    overflow: hidden;
 }
 #app .image_dialog .image_wrapper img {
     width: 900px;
@@ -89,6 +96,21 @@
     background-repeat: no-repeat;
     cursor: pointer;
 }
+#app .image_dialog .buttons_img div.fit_image span {
+    background-image: url(../assets/icon_white_fit.svg);
+    background-position: 50% 50%;
+    background-size: 30px;
+}
+#app .image_dialog .buttons_img div.zoom_out_image span {
+    background-image: url(../assets/icon_white_zoom_out.svg);
+    background-position: 50% 50%;
+    background-size: 30px;
+}
+#app .image_dialog .buttons_img div.zoom_in_image span {
+    background-image: url(../assets/icon_white_zoom_in.svg);
+    background-position: 50% 50%;
+    background-size: 30px;
+}
 #app .image_dialog .buttons_img div.decrease_br span {
     background-image: url(../assets/icon_white_less_bright.svg);
     background-position: 50% 50%;
@@ -123,6 +145,10 @@
     margin-left: -18px;
     font-size: 9px;
     vertical-align: middle;
+}
+#app .image_dialog .buttons_img div.group_ico .value.zoom_value {
+    text-align: left;
+    left: 60%;
 }
 #app .birds .image_wrapper img {
     height: 100%;
