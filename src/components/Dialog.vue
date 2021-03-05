@@ -22,6 +22,7 @@
         :styles="imgStyle"
         :zoom="zoom"
         @image-loaded="imgLoaded = true"
+        @image-loading="imgLoaded = false"
         @set-zoom="setZoom"
         v-if="bird"
       />

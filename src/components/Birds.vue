@@ -98,12 +98,11 @@ export default {
     },
     openModal: function (bird) {
       if (bird) this.selectedBird = bird
-      this.$refs.idialog.imgLoaded = false
       this.dialog = true
     },
     closeModal: function () {
       this.dialog = false
-      this.$refs.idialog.$refs.birdComponent.resetZoom()
+      this.$refs.idialog.resetImage()
     }
   }
 }

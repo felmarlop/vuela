@@ -80,11 +80,13 @@ export default {
   },
   computed: {
     birdUrl: function () {
+      this.$emit('image-loading')
       return this.raw ? this.bird.url.replace('image', 'image/raw') : this.bird.url
     }
   },
   watch: {
     zoom: function (val) {
+      if (!this.img) return false
       if (typeof val !== 'number' || val < ZOOM_MIN) val = ZOOM_MIN
       if (val > ZOOM_MAX) val = ZOOM_MAX
       let imgWrapper = this.img.parentElement
@@ -111,7 +113,6 @@ export default {
       // Image zoom
       let imgWrapper = el.parentElement
       d3.select(imgWrapper.parentElement).call(zoom(this, imgWrapper)).on('dblclick.zoom', null)
-      d3.select(imgWrapper).style('transform', 'scale(' + DEFAULT_ZOOM + ',' + DEFAULT_ZOOM + ')')
 
       // Bird regions
       let regions = this.bird.regions || []
@@ -157,7 +158,7 @@ export default {
       _g.append('rect').attr('class', 'overlay').attr('width', el.width).attr('height', el.height).style('fill', 'none')
     },
     resetZoom: function () {
-      if (this.transform.k == DEFAULT_ZOOM && !this.transform.x && !this.transform.y) return false
+      if (!this.img) return false
       let imgWrapper = this.img.parentElement
       this.transform = { k: DEFAULT_ZOOM, x: 0, y: 0 }
       d3.select(imgWrapper.parentElement).call(

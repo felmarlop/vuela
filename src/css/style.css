@@ -36,6 +36,7 @@
     display: inline;
 }
 #app .image_dialog .zoom_wrapper {
+    transform: scale(1, 1);
     justify-content: center;
 }
 #app .image_dialog .overlay_wrapper {
