@@ -176,7 +176,8 @@
 #app .bigml_link {
     width: 90px;
     display: block;
-    margin: 0 auto;
+    float: right;
+    margin-right: 20px;
 }
 #app .bigml_link span {
     height: 90px;
