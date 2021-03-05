@@ -1,7 +1,7 @@
 <template>
   <div class="image_wrapper">
     <div class="zoom_wrapper">
-      <transition name="image-fade" @afterEnter="initHandlers">
+      <transition name="image-fade" @afterEnter="init">
         <img :src="birdUrl" :style="styles" @load="loaded" @error="error" @click="openModal" v-show="isLoaded" />
       </transition>
     </div>
@@ -13,9 +13,64 @@
 <script>
 import * as d3 from 'd3'
 
+d3.selection.prototype.moveToFront = function () {
+  return this.each(function () {
+    this.parentNode.appendChild(this)
+  })
+}
+
 const DEFAULT_ZOOM = 1
 const ZOOM_MAX = 8
 const ZOOM_MIN = 0.01
+
+// Method to update elements binded to a region
+function updateRegionElements(imgWrapper) {
+  let height = 18,
+    padding = 5,
+    radius = 3,
+    margin = 5,
+    textLimit = 13,
+    rectLimit = 0,
+    rg,
+    txt,
+    res
+
+  d3.selectAll('text.region_label')
+    .attr('x', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      return parseFloat(rg.attr('x')) + padding
+    })
+    .attr('y', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      res = parseFloat(rg.attr('y')) - padding - margin
+      if (res < textLimit) res = textLimit
+      return res
+    })
+    .style('opacity', 1)
+
+  d3.selectAll('rect.region_label_background')
+    .attr('rx', radius)
+    .attr('ry', radius)
+    .attr('x', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      return parseFloat(rg.attr('x'))
+    })
+    .attr('y', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      res = parseFloat(rg.attr('y')) - height - margin
+      if (res < rectLimit) res = rectLimit
+      return res
+    })
+    .attr('width', function (_, i) {
+      txt = imgWrapper.querySelectorAll('text.region_label[index="' + i + '"]')[0]
+      return txt.getBoundingClientRect().width + 2 * padding
+    })
+    .attr('height', height)
+    .transition()
+    .style('opacity', 1)
+
+  d3.selectAll('text.region_label').moveToFront()
+}
 
 function zoom(cpnt, imgWrapper) {
   return d3
@@ -105,7 +160,7 @@ export default {
       this.isLoaded = true
       this.$emit('image-loaded')
     },
-    initHandlers: function (el) {
+    init: function (el) {
       this.img = el
       this.transform = { k: DEFAULT_ZOOM, x: 0, y: 0 }
       if (!el || !this.expanded) return false
@@ -114,7 +169,7 @@ export default {
       let imgWrapper = el.parentElement
       d3.select(imgWrapper.parentElement).call(zoom(this, imgWrapper)).on('dblclick.zoom', null)
 
-      // Bird regions
+      // Image overlay
       let regions = this.bird.regions || []
       let _g = d3
         .select(el.parentElement)
@@ -127,10 +182,15 @@ export default {
         .style('left', el.offsetLeft)
         .append('g')
         .attr('id', 'g_')
+
+      // Image regions
       _g.selectAll('rect.region')
         .data(regions)
         .enter()
         .append('rect')
+        .attr('index', function (_, i) {
+          return i
+        })
         .attr('class', 'region')
         .attr('stroke', '#284400')
         .attr('fill', '#284400')
@@ -155,6 +215,41 @@ export default {
         .attr('height', function (d) {
           return d[3]
         })
+        .on('end', function () {
+          updateRegionElements(imgWrapper)
+        })
+
+      // Image region labels
+      _g.selectAll('text.region_label')
+        .data(regions)
+        .enter()
+        .append('text')
+        .attr('index', function (_, i) {
+          return i
+        })
+        .attr('class', 'region_label')
+        .style('font-size', '0.98em')
+        .style('stroke', 'rgb(255, 255, 255)')
+        .style('color', 'rgb(255, 255, 255)')
+        .style('fill', 'rgb(255, 255, 255)')
+        .style('stroke-width', 0)
+        .style('opacity', 0)
+        .text(function (d) {
+          return d[4] || ''
+        })
+      _g.selectAll('rect.region_label_background')
+        .data(regions)
+        .enter()
+        .append('rect')
+        .attr('index', function (_, i) {
+          return i
+        })
+        .attr('class', 'region_label_background')
+        .attr('stroke', 'rgb(255, 255, 255)')
+        .attr('stroke-width', 1)
+        .attr('fill', 'rgb(0, 0, 0)')
+        .style('opacity', 0)
+
       _g.append('rect').attr('class', 'overlay').attr('width', el.width).attr('height', el.height).style('fill', 'none')
     },
     resetZoom: function () {
