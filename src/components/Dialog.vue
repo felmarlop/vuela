@@ -5,66 +5,77 @@
         <v-btn icon dark @click="$emit('close-modal')">
           <v-icon>mdi-close</v-icon>
         </v-btn>
-        <v-toolbar-title>Nice header</v-toolbar-title>
+        <v-toolbar-title>Image regions</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-toolbar-items>
           <v-btn dark text @click="$emit('close-modal')">Close</v-btn>
         </v-toolbar-items>
       </v-toolbar>
-      <v-subheader>Nice image title</v-subheader>
+      <v-subheader>
+        To draw your first region type a label, click the start point on the image, move and click the end point to
+        finish.
+      </v-subheader>
       <v-divider></v-divider>
-      <bird
-        ref="birdComponent"
-        :key="bird.url"
-        :bird="bird"
-        :raw="true"
-        :expanded="true"
-        :styles="imgStyle"
-        :zoom="zoom"
-        @image-loaded="imgLoaded = true"
-        @image-loading="imgLoaded = false"
-        @set-zoom="setZoom"
-        v-if="bird"
-      />
-      <v-divider></v-divider>
-      <div class="buttons_img" v-if="imgLoaded">
-        <div class="group_ico">
-          <span class="zoom_value value">Ratio: {{ zoom }}</span>
-          <div id="zoom_image" class="zoom_image fit_image ico" @click="$refs.birdComponent.resetZoom()">
-            <span></span>
+      <v-row dense>
+        <v-col :cols="10">
+          <bird
+            ref="birdComponent"
+            :key="bird.url"
+            :bird="bird"
+            :raw="true"
+            :expanded="true"
+            :styles="imgStyle"
+            :zoom="zoom"
+            :selected-label="selectedLabel"
+            @image-loaded="imgLoaded = true"
+            @image-loading="imgLoaded = false"
+            @set-zoom="setZoom"
+            v-if="bird"
+          />
+          <v-divider></v-divider>
+          <div class="buttons_img" v-if="imgLoaded">
+            <div class="group_ico">
+              <span class="zoom_value value">Ratio: {{ zoom }}</span>
+              <div id="zoom_image" class="zoom_image fit_image ico" @click="$refs.birdComponent.resetZoom()">
+                <span></span>
+              </div>
+              <div id="zoom_image" class="zoom_image zoom_out_image ico" @click="decreaseZoom()">
+                <span></span>
+              </div>
+              <span class="divider"></span>
+              <div id="zoom_image" class="zoom_image zoom_in_image ico" @click="increaseZoom()">
+                <span></span>
+              </div>
+            </div>
+            <div class="group_ico">
+              <span class="brightness_value value">{{ brightness }}%</span>
+              <div id="brightness_image" class="decrease_br intensity ico" @click="decreaseBrightness()">
+                <span></span>
+              </div>
+              <span class="divider"></span>
+              <div id="brightness_image" class="increase_br intensity ico" @click="increaseBrightness()">
+                <span></span>
+              </div>
+            </div>
+            <div class="group_ico">
+              <span class="contrast_value value">{{ contrast }}%</span>
+              <div id="contrast_image" class="decrease_ct intensity ico" @click="decreaseContrast()">
+                <span></span>
+              </div>
+              <span class="divider"></span>
+              <div id="contrast_image" class="increase_ct intensity ico" @click="increaseContrast()">
+                <span></span>
+              </div>
+            </div>
+            <div id="reset_original" class="reset_original ico disabled" @click="resetImage()">
+              <span></span>
+            </div>
           </div>
-          <div id="zoom_image" class="zoom_image zoom_out_image ico" @click="decreaseZoom()">
-            <span></span>
-          </div>
-          <span class="divider"></span>
-          <div id="zoom_image" class="zoom_image zoom_in_image ico" @click="increaseZoom()">
-            <span></span>
-          </div>
-        </div>
-        <div class="group_ico">
-          <span class="brightness_value value">{{ brightness }}%</span>
-          <div id="brightness_image" class="decrease_br intensity ico" @click="decreaseBrightness()">
-            <span></span>
-          </div>
-          <span class="divider"></span>
-          <div id="brightness_image" class="increase_br intensity ico" @click="increaseBrightness()">
-            <span></span>
-          </div>
-        </div>
-        <div class="group_ico">
-          <span class="contrast_value value">{{ contrast }}%</span>
-          <div id="contrast_image" class="decrease_ct intensity ico" @click="decreaseContrast()">
-            <span></span>
-          </div>
-          <span class="divider"></span>
-          <div id="contrast_image" class="increase_ct intensity ico" @click="increaseContrast()">
-            <span></span>
-          </div>
-        </div>
-        <div id="reset_original" class="reset_original ico disabled" @click="resetImage()">
-          <span></span>
-        </div>
-      </div>
+        </v-col>
+        <v-col :cols="2" class="controls">
+          <v-text-field v-model="selectedLabel" placeholder="Type your label" outlined class="pr-10"></v-text-field>
+        </v-col>
+      </v-row>
     </v-card>
   </v-dialog>
 </template>
@@ -95,6 +106,7 @@ export default {
       brightness: DEFAULT_LUMINOSITY,
       contrast: DEFAULT_LUMINOSITY,
       zoom: DEFAULT_ZOOM,
+      selectedLabel: '',
       imgLoaded: false
     }
   },

@@ -72,7 +72,7 @@ function updateRegionElements(imgWrapper) {
     })
     .attr('width', function (_, i) {
       txt = imgWrapper.querySelectorAll('text.region_label[index="' + i + '"]')[0]
-      return txt.getBoundingClientRect().width + 2 * padding
+      return txt.getComputedTextLength() + 2 * padding
     })
     .attr('height', height)
     .transition()
@@ -142,6 +142,10 @@ export default {
     zoom: {
       type: Number,
       default: DEFAULT_ZOOM
+    },
+    selectedLabel: {
+      type: String,
+      default: ''
     },
     raw: Boolean,
     expanded: Boolean
@@ -335,7 +339,7 @@ export default {
       lbBackgrounds.exit().remove()
     },
     addNewRegion: function () {
-      if (!d3.select('rect.adding').empty() || !initPoint) return false
+      if (!d3.select('rect.adding').empty() || !initPoint || !this.selectedLabel) return false
 
       let x = initPoint[0],
         y = initPoint[1]
@@ -354,14 +358,14 @@ export default {
           parseInt(addingRect.attr('y')),
           parseInt(addingRect.attr('width')),
           parseInt(addingRect.attr('height')),
-          'new label'
+          this.selectedLabel
         ]
 
       initPoint = null
       addingRect.classed('adding', false)
 
       data = data.slice(0, -1)
-      if (newRegion[2] && newRegion[3]) {
+      if (newRegion[2] && newRegion[3] && this.selectedLabel) {
         data.push(newRegion)
       }
       this.updateRegions(data)
