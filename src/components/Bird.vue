@@ -23,6 +23,68 @@ const DEFAULT_ZOOM = 1
 const ZOOM_MAX = 8
 const ZOOM_MIN = 0.01
 const REGIONS_ALLOWED = 40
+const CATEGORY_COLORS = [
+  '#1f77b4',
+  '#ff7f0e',
+  '#2ca02c',
+  '#d62728',
+  '#9467bd',
+  '#8c564b',
+  '#e377c2',
+  '#7f7f7f',
+  '#bcbd22',
+  '#17becf',
+  '#aec7e8',
+  '#ffbb78',
+  '#98df8a',
+  '#ff9896',
+  '#c5b0d5',
+  '#c49c94',
+  '#f7b6d2',
+  '#c7c7c7',
+  '#dbdb8d',
+  '#9edae5',
+  '#393b79',
+  '#5254a3',
+  '#6b6ecf',
+  '#9c9ede',
+  '#637939',
+  '#8ca252',
+  '#b5cf6b',
+  '#cedb9c',
+  '#8c6d31',
+  '#bd9e39',
+  '#e7ba52',
+  '#e7cb94',
+  '#843c39',
+  '#ad494a',
+  '#d6616b',
+  '#e7969c',
+  '#7b4173',
+  '#a55194',
+  '#ce6dbd',
+  '#de9ed6',
+  '#3182bd',
+  '#6baed6',
+  '#9ecae1',
+  '#c6dbef',
+  '#e6550d',
+  '#fd8d3c',
+  '#fdae6b',
+  '#fdd0a2',
+  '#31a354',
+  '#74c476',
+  '#a1d99b',
+  '#c7e9c0',
+  '#756bb1',
+  '#9e9ac8',
+  '#bcbddc',
+  '#dadaeb',
+  '#636363',
+  '#969696',
+  '#bdbdbd',
+  '#d9d9d9'
+]
 
 let initPoint = null
 
@@ -192,7 +254,6 @@ export default {
       if (!el || !cpnt.expanded) return false
 
       // Image overlay
-      let regions = cpnt.bird.regions || []
       let _g = d3
         .select(el.parentElement)
         .append('svg')
@@ -205,7 +266,7 @@ export default {
         .append('g')
         .attr('id', 'g_')
 
-      cpnt.updateRegions(regions)
+      cpnt.updateRegions(cpnt.bird.regions || [])
 
       // Cross lines
       _g.append('line')
@@ -262,9 +323,25 @@ export default {
     updateRegions: function (data) {
       let cpnt = this,
         _g = d3.select('#g_'),
-        imgWrapper = cpnt.img.parentElement
+        imgWrapper = cpnt.img.parentElement,
+        validRegions = [],
+        labelSet = [],
+        ic = 0,
+        currentRg,
+        colorFn
+
+      while (ic < data.length) {
+        currentRg = data[ic]
+        if (currentRg.length == 5) {
+          validRegions.push(currentRg)
+          if (currentRg[4]) labelSet.push(currentRg[4])
+        }
+        ic++
+      }
+      colorFn = this.getColorFn(labelSet)
+
       // Image regions
-      let regs = _g.selectAll('rect.region').data(data)
+      let regs = _g.selectAll('rect.region').data(validRegions)
       regs
         .enter()
         .append('rect')
@@ -275,8 +352,12 @@ export default {
         .classed('adding', function (d) {
           return !d[4]
         })
-        .attr('stroke', '#284400')
-        .attr('fill', '#284400')
+        .attr('stroke', function (d) {
+          return colorFn(d[4] || cpnt.selectedLabel)
+        })
+        .attr('fill', function (d) {
+          return colorFn(d[4] || cpnt.selectedLabel)
+        })
         .attr('stroke-width', '2px')
         .attr('fill-opacity', 0.2)
         .attr('x', function (d) {
@@ -306,7 +387,7 @@ export default {
       regs.exit().remove()
 
       // Image region labels
-      let rglabels = _g.selectAll('text.region_label').data(data)
+      let rglabels = _g.selectAll('text.region_label').data(validRegions)
       rglabels
         .enter()
         .append('text')
@@ -324,7 +405,7 @@ export default {
           return d[4] || ''
         })
       rglabels.exit().remove()
-      let lbBackgrounds = _g.selectAll('rect.region_label_background').data(data)
+      let lbBackgrounds = _g.selectAll('rect.region_label_background').data(validRegions)
       lbBackgrounds
         .enter()
         .append('rect')
@@ -370,6 +451,9 @@ export default {
       }
       this.updateRegions(data)
       updateRegionElements(this.img.parentElement)
+    },
+    getColorFn: function (labels) {
+      return d3.scaleOrdinal().range(CATEGORY_COLORS).domain(labels)
     },
     resetZoom: function () {
       if (!this.img) return false
