@@ -4,7 +4,7 @@
       <bird :key="b.url" :bird="b" @open-modal="openModal" v-for="b in birds" />
     </transition-group>
     <idialog ref="idialog" :dialog="dialog" :bird="selectedBird" @close-modal="closeModal" />
-    <v-btn @click="shuffle">Shuffle</v-btn>
+    <v-btn @click="shuffle(true)">Shuffle</v-btn>
   </div>
 </template>
 
@@ -12,6 +12,9 @@
 import Bird from './Bird.vue'
 import ImageDialog from './Dialog.vue'
 import _ from 'lodash'
+
+let shuffleInterval
+
 export default {
   name: 'Birds',
   components: {
@@ -87,14 +90,19 @@ export default {
     }
   },
   created: function () {
-    var cm = this
-    setInterval(function () {
-      cm.shuffle()
-    }, 5000)
+    this.resetInterval()
   },
   methods: {
-    shuffle: function () {
+    shuffle: function (reset) {
       this.birds = _.shuffle(this.birds)
+      if (reset) this.resetInterval()
+    },
+    resetInterval: function () {
+      var cm = this
+      clearInterval(shuffleInterval)
+      shuffleInterval = setInterval(function () {
+        cm.shuffle()
+      }, 5000)
     },
     openModal: function (bird) {
       if (bird) this.selectedBird = bird
