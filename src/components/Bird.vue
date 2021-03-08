@@ -22,6 +22,9 @@ d3.selection.prototype.moveToFront = function () {
 const DEFAULT_ZOOM = 1
 const ZOOM_MAX = 8
 const ZOOM_MIN = 0.01
+const REGIONS_ALLOWED = 40
+
+let initPoint = null
 
 // Method to update elements binded to a region
 function updateRegionElements(imgWrapper) {
@@ -33,9 +36,12 @@ function updateRegionElements(imgWrapper) {
     rectLimit = 0,
     rg,
     txt,
-    res
-
+    res,
+    idx
   d3.selectAll('text.region_label')
+    .classed('to_remove', function (d) {
+      return !d[4]
+    })
     .attr('x', function (_, i) {
       rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
       return parseFloat(rg.attr('x')) + padding
@@ -49,6 +55,9 @@ function updateRegionElements(imgWrapper) {
     .style('opacity', 1)
 
   d3.selectAll('rect.region_label_background')
+    .classed('to_remove', function (d) {
+      return !d[4]
+    })
     .attr('rx', radius)
     .attr('ry', radius)
     .attr('x', function (_, i) {
@@ -68,8 +77,16 @@ function updateRegionElements(imgWrapper) {
     .attr('height', height)
     .transition()
     .style('opacity', 1)
+  d3.selectAll('.to_remove').remove()
 
-  d3.selectAll('text.region_label').moveToFront()
+  // Sort elements
+  d3.selectAll('rect.region').each(function () {
+    idx = d3.select(this).attr('index')
+    d3.select(imgWrapper.querySelectorAll('rect.region_label_background[index="' + idx + '"]')[0]).moveToFront()
+    d3.select(imgWrapper.querySelectorAll('text.region_label[index="' + idx + '"]')[0]).moveToFront()
+  })
+  if (!d3.select('rect.adding').empty()) d3.select('rect.adding').moveToFront()
+  d3.select('rect.overlay').moveToFront()
 }
 
 function zoom(cpnt, imgWrapper) {
@@ -84,6 +101,9 @@ function zoom(cpnt, imgWrapper) {
         x = wheel ? cpnt.transform['x'] : transform['x'],
         y = wheel ? cpnt.transform['y'] : transform['y']
 
+      d3.selectAll('.cross_line').style('display', 'none')
+      if (d3.select('rect.adding').empty()) initPoint = null
+
       cpnt.transform = { k: k, x: x, y: y }
       cpnt.$emit('set-zoom', k)
 
@@ -97,7 +117,8 @@ function zoom(cpnt, imgWrapper) {
     })
     .on('end', function (ev) {
       d3.select(imgWrapper.parentElement).style('cursor', 'default')
-      d3.select('rect.overlay').style('cursor', 'default')
+      d3.select('rect.overlay').style('cursor', 'crosshair')
+      if (initPoint) cpnt.addNewRegion()
       if (ev.sourceEvent) {
         d3.select(imgWrapper.parentElement).call(
           zoom(cpnt, imgWrapper).transform,
@@ -161,16 +182,13 @@ export default {
       this.$emit('image-loaded')
     },
     init: function (el) {
-      this.img = el
-      this.transform = { k: DEFAULT_ZOOM, x: 0, y: 0 }
-      if (!el || !this.expanded) return false
-
-      // Image zoom
-      let imgWrapper = el.parentElement
-      d3.select(imgWrapper.parentElement).call(zoom(this, imgWrapper)).on('dblclick.zoom', null)
+      let cpnt = this
+      cpnt.img = el
+      cpnt.transform = { k: DEFAULT_ZOOM, x: 0, y: 0 }
+      if (!el || !cpnt.expanded) return false
 
       // Image overlay
-      let regions = this.bird.regions || []
+      let regions = cpnt.bird.regions || []
       let _g = d3
         .select(el.parentElement)
         .append('svg')
@@ -183,15 +201,76 @@ export default {
         .append('g')
         .attr('id', 'g_')
 
+      cpnt.updateRegions(regions)
+
+      // Cross lines
+      _g.append('line')
+        .attr('x1', 0)
+        .attr('y1', 0)
+        .attr('x2', 0)
+        .attr('y2', el.height)
+        .attr('stroke', '#919191')
+        .attr('class', 'cross_line y')
+        .style('display', 'none')
+      _g.append('line')
+        .attr('x1', 0)
+        .attr('y1', 0)
+        .attr('x2', el.width)
+        .attr('y2', 0)
+        .attr('stroke', '#919191')
+        .attr('class', 'cross_line x')
+        .style('display', 'none')
+      _g.append('rect')
+        .attr('class', 'overlay')
+        .attr('width', el.width)
+        .attr('height', el.height)
+        .style('fill', 'none')
+        .on('mousedown.overlay', function (ev) {
+          if (d3.select('rect.adding').empty()) {
+            initPoint = d3.pointer(ev)
+          } else {
+            cpnt.finishRegion()
+          }
+        })
+        .on('mousemove.overlay', function (event) {
+          let pointer = d3.pointer(event)
+          d3.selectAll('.cross_line').style('display', 'block')
+          d3.select('.cross_line.x').attr('y1', pointer[1]).attr('y2', pointer[1])
+          d3.select('.cross_line.y').attr('x1', pointer[0]).attr('x2', pointer[0])
+          if (initPoint) {
+            let addingRect = d3.select('rect.adding')
+            if (pointer[0] >= initPoint[0]) {
+              addingRect.attr('width', pointer[0] - initPoint[0])
+            } else {
+              addingRect.attr('x', pointer[0]).attr('width', initPoint[0] - pointer[0])
+            }
+            if (pointer[1] >= initPoint[1]) {
+              addingRect.attr('height', pointer[1] - initPoint[1])
+            } else {
+              addingRect.attr('y', pointer[1]).attr('height', initPoint[1] - pointer[1])
+            }
+          }
+        })
+        .on('mouseout.overlay', function () {
+          d3.selectAll('.cross_line').style('display', 'none')
+        })
+    },
+    updateRegions: function (data) {
+      let cpnt = this,
+        _g = d3.select('#g_'),
+        imgWrapper = cpnt.img.parentElement
       // Image regions
-      _g.selectAll('rect.region')
-        .data(regions)
+      let regs = _g.selectAll('rect.region').data(data)
+      regs
         .enter()
         .append('rect')
         .attr('index', function (_, i) {
           return i
         })
         .attr('class', 'region')
+        .classed('adding', function (d) {
+          return !d[4]
+        })
         .attr('stroke', '#284400')
         .attr('fill', '#284400')
         .attr('stroke-width', '2px')
@@ -216,12 +295,15 @@ export default {
           return d[3]
         })
         .on('end', function () {
+          // Image zoom
+          d3.select(imgWrapper.parentElement).call(zoom(cpnt, imgWrapper)).on('dblclick.zoom', null)
           updateRegionElements(imgWrapper)
         })
+      regs.exit().remove()
 
       // Image region labels
-      _g.selectAll('text.region_label')
-        .data(regions)
+      let rglabels = _g.selectAll('text.region_label').data(data)
+      rglabels
         .enter()
         .append('text')
         .attr('index', function (_, i) {
@@ -237,8 +319,9 @@ export default {
         .text(function (d) {
           return d[4] || ''
         })
-      _g.selectAll('rect.region_label_background')
-        .data(regions)
+      rglabels.exit().remove()
+      let lbBackgrounds = _g.selectAll('rect.region_label_background').data(data)
+      lbBackgrounds
         .enter()
         .append('rect')
         .attr('index', function (_, i) {
@@ -249,8 +332,40 @@ export default {
         .attr('stroke-width', 1)
         .attr('fill', 'rgb(0, 0, 0)')
         .style('opacity', 0)
+      lbBackgrounds.exit().remove()
+    },
+    addNewRegion: function () {
+      if (!d3.select('rect.adding').empty() || !initPoint) return false
 
-      _g.append('rect').attr('class', 'overlay').attr('width', el.width).attr('height', el.height).style('fill', 'none')
+      let x = initPoint[0],
+        y = initPoint[1]
+      if (x > this.img.width || y > this.img.height) return false
+      if (d3.selectAll('rect.region').size() >= REGIONS_ALLOWED) return false
+
+      let data = d3.selectAll('rect.region').data()
+      data.push([x, y, 0, 0, ''])
+      this.updateRegions(data)
+    },
+    finishRegion: function () {
+      let data = d3.selectAll('rect.region').data(),
+        addingRect = d3.select('rect.adding'),
+        newRegion = [
+          parseInt(addingRect.attr('x')),
+          parseInt(addingRect.attr('y')),
+          parseInt(addingRect.attr('width')),
+          parseInt(addingRect.attr('height')),
+          'new label'
+        ]
+
+      initPoint = null
+      addingRect.classed('adding', false)
+
+      data = data.slice(0, -1)
+      if (newRegion[2] && newRegion[3]) {
+        data.push(newRegion)
+      }
+      this.updateRegions(data)
+      updateRegionElements(this.img.parentElement)
     },
     resetZoom: function () {
       if (!this.img) return false
