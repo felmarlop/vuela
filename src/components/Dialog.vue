@@ -74,6 +74,8 @@
         </v-col>
         <v-col :cols="2" class="controls">
           <v-text-field v-model="selectedLabel" placeholder="Type your label" outlined class="pr-10"></v-text-field>
+          <v-switch v-model="editingMode" flat :label="editingMode ? 'Disable editing mode' : 'Enable editing mode'">
+          </v-switch>
         </v-col>
       </v-row>
     </v-card>
@@ -107,6 +109,7 @@ export default {
       contrast: DEFAULT_LUMINOSITY,
       zoom: DEFAULT_ZOOM,
       selectedLabel: '',
+      editingMode: false,
       imgLoaded: false
     }
   },

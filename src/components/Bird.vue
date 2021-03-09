@@ -89,16 +89,20 @@ const CATEGORY_COLORS = [
 let initPoint = null
 
 // Method to update elements binded to a region
-function updateRegionElements(imgWrapper) {
-  let height = 18,
+function updateRegionElements(img) {
+  let imgWrapper = img.parentElement,
+    height = 18,
     padding = 5,
     radius = 3,
     margin = 5,
+    closeMargin = 2,
     textLimit = 13,
     rectLimit = 0,
+    deleteSize = 15,
     rg,
     txt,
     res,
+    closeX,
     idx
   d3.selectAll('text.region_label')
     .classed('to_remove', function (d) {
@@ -141,6 +145,20 @@ function updateRegionElements(imgWrapper) {
     .style('opacity', 1)
   d3.selectAll('.to_remove').remove()
 
+  d3.selectAll('.delete_region_wrapper')
+    .attr('x', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      closeX = parseFloat(rg.attr('x')) + parseFloat(rg.attr('width')) + closeMargin
+      if (closeX + deleteSize >= img.width) closeX = img.width - deleteSize
+      return closeX
+    })
+    .attr('y', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      return parseFloat(rg.attr('y'))
+    })
+    .attr('width', deleteSize)
+    .attr('height', deleteSize)
+
   // Sort elements
   d3.selectAll('rect.region').each(function () {
     idx = d3.select(this).attr('index')
@@ -180,7 +198,10 @@ function zoom(cpnt, imgWrapper) {
     .on('end', function (ev) {
       d3.select(imgWrapper.parentElement).style('cursor', 'default')
       d3.select('rect.overlay').style('cursor', 'crosshair')
-      if (initPoint) cpnt.addNewRegion()
+      if (initPoint) {
+        cpnt.disableEditingMode()
+        cpnt.addNewRegion()
+      }
       if (ev.sourceEvent) {
         d3.select(imgWrapper.parentElement).call(
           zoom(cpnt, imgWrapper).transform,
@@ -382,7 +403,7 @@ export default {
         .on('end', function () {
           // Image zoom
           d3.select(imgWrapper.parentElement).call(zoom(cpnt, imgWrapper)).on('dblclick.zoom', null)
-          updateRegionElements(imgWrapper)
+          updateRegionElements(cpnt.img)
         })
       regs.exit().remove()
 
@@ -450,7 +471,42 @@ export default {
         data.push(newRegion)
       }
       this.updateRegions(data)
-      updateRegionElements(this.img.parentElement)
+      updateRegionElements(this.img)
+    },
+    removeRegionByIndex(idx) {
+      let data = d3.selectAll('rect.region').data()
+      data.splice(idx, 1)
+      this.updateRegions(data)
+    },
+    enableEditingMode: function () {
+      let cpnt = this,
+        _g = d3.select('#g_'),
+        idx
+
+      _g.select('rect.overlay').classed('editing', true)
+
+      // rects for resizing
+      _g.selectAll('rect.region').each(function () {
+        idx = d3.select(this).attr('index')
+        // Icon to remove the region
+        _g.append('svg:foreignObject')
+          .attr('index', idx)
+          .attr('class', 'delete_region_wrapper')
+          .on('mousedown', function () {
+            var idx = d3.select(this).attr('index')
+            cpnt.removeRegionByIndex(idx)
+          })
+          .append('xhtml:i')
+          .attr('class', 'delete_region')
+        updateRegionElements(cpnt.img)
+      })
+      _g.selectAll('.region_label,.region_label_background,.delete_region_wrapper').moveToFront()
+    },
+    disableEditingMode: function () {
+      let _g = d3.select('#g_')
+      _g.select('rect.overlay').classed('editing', false).moveToFront()
+      _g.selectAll('.region_label_background,.region_label').moveToFront()
+      _g.selectAll('.delete_region_wrapper').remove()
     },
     getColorFn: function (labels) {
       return d3.scaleOrdinal().range(CATEGORY_COLORS).domain(labels)

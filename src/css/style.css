@@ -49,6 +49,32 @@
     z-index: 3;
     cursor: crosshair;
 }
+#app .image_dialog .overlay.editing{
+    cursor: default;
+}
+#app .image_dialog .delete_region{
+    display: inline-block;
+    background-color: rgba(0,0,0,0.7);
+    color: #fff;
+    width: 14px;
+    height: 14px;
+    text-align: center;
+    font-style: normal;
+    border-radius: 50%;
+    background-image: url(../assets/icon_close_ev_white.png);
+    background-position: 50% 50%;
+    background-size: 8px;
+    right: 1px;
+    top: 1px;
+    background-repeat: no-repeat;
+    border: 1px solid rgba(255,255,255,0.9);
+    opacity: 1;
+}
+#app .image_dialog .delete_region:hover{
+    background-color: #d61309;
+    cursor: pointer;
+    border: none;
+}
 #app .image_dialog .image_wrapper {
     padding: 20px 0 20px 0;
     overflow: hidden;
