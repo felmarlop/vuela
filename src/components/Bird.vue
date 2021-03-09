@@ -522,8 +522,6 @@ export default {
         _g = d3.select('#g_'),
         idx
 
-      _g.select('rect.overlay').classed('editing', true)
-
       // rects for resizing
       _g.selectAll('rect.region')
         .each(function () {
@@ -545,7 +543,7 @@ export default {
     },
     disableEditingMode: function () {
       let _g = d3.select('#g_')
-      _g.select('rect.overlay').classed('editing', false).moveToFront()
+      _g.select('rect.overlay').moveToFront()
       _g.selectAll('.region_label_background,.region_label').moveToFront()
       _g.selectAll('.delete_region_wrapper').remove()
       this.$emit('set-editing', false)

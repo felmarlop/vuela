@@ -49,9 +49,6 @@
     z-index: 3;
     cursor: crosshair;
 }
-#app .image_dialog .overlay.editing{
-    cursor: default;
-}
 #app .image_dialog .delete_region{
     display: inline-block;
     background-color: rgba(0,0,0,0.7);
@@ -76,12 +73,13 @@
     border: none;
 }
 #app .image_dialog .image_wrapper {
+    max-height: 700px;
     padding: 20px 0 20px 0;
     overflow: hidden;
 }
 #app .image_dialog .image_wrapper img {
-    width: 900px;
-    max-width: 900px;
+    width: 700px;
+    max-width: 700px;
     vertical-align: middle;
 }
 #app .image_dialog .buttons_img {
