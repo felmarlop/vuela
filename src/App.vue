@@ -1,7 +1,7 @@
 <template>
-  <div id="app" data-app>
-    <img alt="Vue logo" src="./assets/logo.png" class="logo" />
+  <v-app class="app">
     <div class="header">
+      <img alt="Vue logo" src="./assets/logo.png" class="logo" />
       <h2>{{ msg }}</h2>
     </div>
     <Birds></Birds>
@@ -10,7 +10,7 @@
     <div class="footer">
       <a class="bigml_link" :href="bigmlUrl" target="_blank"><span></span></a>
     </div>
-  </div>
+  </v-app>
 </template>
 
 <script>
@@ -28,6 +28,7 @@ export default {
   }
 }
 </script>
-<style>
-@import './css/style.css';
+
+<style lang="sass">
+@import './css/style.css'
 </style>

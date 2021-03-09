@@ -1,7 +1,7 @@
 <template>
   <v-dialog :value="dialog" fullscreen hide-overlay transition="dialog-bottom-transition" content-class="image_dialog">
     <v-card>
-      <v-toolbar dark color="primary">
+      <v-toolbar dark color="secondary">
         <v-btn icon dark @click="$emit('close-modal')">
           <v-icon>mdi-close</v-icon>
         </v-btn>
@@ -72,9 +72,14 @@
             </div>
           </div>
         </v-col>
-        <v-col :cols="2" class="controls">
+        <v-col :cols="2" class="pa-md-4">
           <v-text-field v-model="selectedLabel" placeholder="Type your label" outlined class="pr-10"></v-text-field>
-          <v-switch v-model="editingMode" flat :label="editingMode ? 'Disable editing mode' : 'Enable editing mode'">
+          <v-switch
+            v-model="editingMode"
+            flat
+            color="secondary"
+            :label="editingMode ? 'Disable editing mode' : 'Enable editing mode'"
+          >
           </v-switch>
         </v-col>
       </v-row>
