@@ -26,10 +26,13 @@
             :expanded="true"
             :styles="imgStyle"
             :zoom="zoom"
+            :labels="labels"
             :selected-label="selectedLabel"
+            :editing-mode="editingMode"
             @image-loaded="imgLoaded = true"
             @image-loading="imgLoaded = false"
             @set-zoom="setZoom"
+            @set-editing="setEditing"
             v-if="bird"
           />
           <v-divider></v-divider>
@@ -106,6 +109,12 @@ export default {
     bird: {
       type: Object,
       default: null
+    },
+    labels: {
+      type: Array,
+      default: function () {
+        return []
+      }
     }
   },
   data: function () {
@@ -113,7 +122,7 @@ export default {
       brightness: DEFAULT_LUMINOSITY,
       contrast: DEFAULT_LUMINOSITY,
       zoom: DEFAULT_ZOOM,
-      selectedLabel: '',
+      selectedLabel: 'test label',
       editingMode: false,
       imgLoaded: false
     }
@@ -151,6 +160,9 @@ export default {
     decreaseContrast: function () {
       this.contrast -= LUMINOSITY_STEP
       if (this.contrast < LUMINOSITY_MIN) this.contrast = LUMINOSITY_MIN
+    },
+    setEditing: function (val) {
+      this.editingMode = val
     },
     setZoom: function (val) {
       if (typeof val !== 'number' || val < ZOOM_MIN) val = ZOOM_MIN

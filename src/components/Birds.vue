@@ -3,7 +3,7 @@
     <transition-group name="image-list" class="birds" appear>
       <bird :key="b.url" :bird="b" @open-modal="openModal" v-for="b in birds" />
     </transition-group>
-    <idialog ref="idialog" :dialog="dialog" :bird="selectedBird" @close-modal="closeModal" />
+    <idialog ref="idialog" :dialog="dialog" :bird="selectedBird" :labels="labels" @close-modal="closeModal" />
     <v-btn @click="shuffle(true)">Shuffle</v-btn>
   </div>
 </template>
@@ -85,6 +85,7 @@ export default {
           ]
         }
       ],
+      labels: ['goshawk', 'golden', 'snake eagle', 'imperial', 'vulture', 'bonelli'],
       selectedBird: null,
       dialog: false
     }
@@ -98,7 +99,7 @@ export default {
       if (reset) this.resetInterval()
     },
     resetInterval: function () {
-      var cm = this
+      let cm = this
       clearInterval(shuffleInterval)
       shuffleInterval = setInterval(function () {
         cm.shuffle()
@@ -110,6 +111,7 @@ export default {
     },
     closeModal: function () {
       this.dialog = false
+      this.$refs.idialog.editingMode = false
       this.$refs.idialog.resetImage()
     }
   }
