@@ -88,6 +88,90 @@ const CATEGORY_COLORS = [
 
 let initPoint = null
 
+// Method to resize a region
+function resized(event, square, img) {
+  var imgWrapper = img.parentElement,
+    minSize = 1,
+    region,
+    label,
+    diffx,
+    diffy,
+    newX,
+    newY,
+    newW,
+    newH,
+    rwidth,
+    rheight,
+    dSquare
+
+  dSquare = d3.select(square)
+  region = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + dSquare.attr('index') + '"]')[0])
+  diffx = parseFloat(event.x) - parseFloat(event.subject.x)
+  diffy = parseFloat(event.y) - parseFloat(event.subject.y)
+  rwidth = parseFloat(region.attr('width'))
+  rheight = parseFloat(region.attr('height'))
+  if (dSquare.classed('top_left')) {
+    newX = diffx + parseFloat(region.attr('x'))
+    newY = diffy + parseFloat(region.attr('y'))
+    if (newX < 0) {
+      newX = 0
+      diffx = 0
+    }
+    if (newY < 0) {
+      newY = 0
+      diffy = 0
+    }
+    newW = rwidth - diffx
+    newH = rheight - diffy
+  } else if (dSquare.classed('bottom_right')) {
+    newX = parseFloat(region.attr('x'))
+    newY = parseFloat(region.attr('y'))
+    newW = rwidth + diffx
+    newH = rheight + diffy
+  } else if (dSquare.classed('bottom_left')) {
+    newX = diffx + parseFloat(region.attr('x'))
+    newY = parseFloat(region.attr('y'))
+    if (newX < 0) {
+      newX = 0
+      diffx = 0
+    }
+    newW = rwidth - diffx
+    newH = rheight + diffy
+  } else if (dSquare.classed('top_right')) {
+    newX = parseFloat(region.attr('x'))
+    newY = diffy + parseFloat(region.attr('y'))
+    if (newY < 0) {
+      newY = 0
+      diffy = 0
+    }
+    newW = rwidth + diffx
+    newH = rheight - diffy
+  } else {
+    return
+  }
+
+  // Fix new with and height
+  if (newW < minSize) {
+    newW = minSize
+    newX = parseFloat(region.attr('x'))
+  }
+  if (newH < minSize) {
+    newH = minSize
+    newY = parseFloat(region.attr('y'))
+  }
+  if (newX + newW > img.width) newW = img.width - newX
+  if (newY + newH > img.height) newH = img.height - newY
+
+  // Update region data
+  region.attr('x', newX).attr('y', newY).attr('width', newW).attr('height', newH)
+  label = region.data()[0][4]
+  region.data([[newX, newY, newW, newH, label]])
+  event.subject['x'] = event.x
+  event.subject['y'] = event.y
+
+  updateRegionElements(img)
+}
+
 // Method to update elements binded to a region
 function updateRegionElements(img) {
   let imgWrapper = img.parentElement,
@@ -98,12 +182,14 @@ function updateRegionElements(img) {
     closeMargin = 2,
     textLimit = 13,
     rectLimit = 0,
+    resizesz = 8,
     deleteSize = 15,
     rg,
     txt,
     res,
     closeX,
     idx
+
   d3.selectAll('text.region_label')
     .classed('to_remove', function (d) {
       return !d[4]
@@ -163,6 +249,76 @@ function updateRegionElements(img) {
     })
     .attr('width', deleteSize)
     .attr('height', deleteSize)
+
+  d3.selectAll('rect.top_left')
+    .classed('to_remove', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      return rg.empty()
+    })
+    .attr('x', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      if (rg.empty()) return 0
+      return rg.attr('x') - resizesz / 2
+    })
+    .attr('y', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      if (rg.empty()) return 0
+      return rg.attr('y') - resizesz / 2
+    })
+    .attr('width', resizesz)
+    .attr('height', resizesz)
+  d3.selectAll('rect.top_right')
+    .classed('to_remove', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      return rg.empty()
+    })
+    .attr('x', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      if (rg.empty()) return 0
+      return parseFloat(rg.attr('x')) + parseFloat(rg.attr('width') - resizesz / 2)
+    })
+    .attr('y', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      if (rg.empty()) return 0
+      return rg.attr('y') - resizesz / 2
+    })
+    .attr('width', resizesz)
+    .attr('height', resizesz)
+  d3.selectAll('rect.bottom_right')
+    .classed('to_remove', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      return rg.empty()
+    })
+    .attr('x', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      if (rg.empty()) return 0
+      return parseFloat(rg.attr('x')) + parseFloat(rg.attr('width')) - resizesz / 2
+    })
+    .attr('y', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      if (rg.empty()) return 0
+      return parseFloat(rg.attr('y')) + parseFloat(rg.attr('height')) - resizesz / 2
+    })
+    .attr('width', resizesz)
+    .attr('height', resizesz)
+  d3.selectAll('rect.bottom_left')
+    .classed('to_remove', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      return rg.empty()
+    })
+    .attr('x', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      if (rg.empty()) return 0
+      return rg.attr('x') - resizesz / 2
+    })
+    .attr('y', function (_, i) {
+      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
+      if (rg.empty()) return 0
+      return parseFloat(rg.attr('y')) + parseFloat(rg.attr('height')) - resizesz / 2
+    })
+    .attr('width', resizesz)
+    .attr('height', resizesz)
+
   d3.selectAll('.to_remove').remove()
 
   // Sort elements
@@ -173,7 +329,14 @@ function updateRegionElements(img) {
   })
   if (!d3.select('rect.adding').empty()) d3.select('rect.adding').moveToFront()
   d3.select('rect.overlay').moveToFront()
-  d3.selectAll('.delete_region_wrapper').moveToFront()
+  d3.selectAll('rect.region').each(function () {
+    idx = d3.select(this).attr('index')
+    d3.select(imgWrapper.querySelectorAll('.delete_region_wrapper[index="' + idx + '"]')[0]).moveToFront()
+    d3.select(imgWrapper.querySelectorAll('rect.top_left[index="' + idx + '"]')[0]).moveToFront()
+    d3.select(imgWrapper.querySelectorAll('rect.top_right[index="' + idx + '"]')[0]).moveToFront()
+    d3.select(imgWrapper.querySelectorAll('rect.bottom_right[index="' + idx + '"]')[0]).moveToFront()
+    d3.select(imgWrapper.querySelectorAll('rect.bottom_left[index="' + idx + '"]')[0]).moveToFront()
+  })
 }
 
 function zoom(cpnt, imgWrapper) {
@@ -298,7 +461,7 @@ export default {
       cpnt.transform = { k: DEFAULT_ZOOM, x: 0, y: 0 }
       if (!el || !cpnt.expanded) return false
 
-      // Image overlay
+      // Image svg
       let _g = d3
         .select(el.parentElement)
         .append('svg')
@@ -319,7 +482,7 @@ export default {
         .attr('y1', 0)
         .attr('x2', 0)
         .attr('y2', el.height)
-        .attr('stroke', '#919191')
+        .attr('stroke', '#FFFFFF')
         .attr('class', 'cross_line y')
         .style('display', 'none')
       _g.append('line')
@@ -327,9 +490,11 @@ export default {
         .attr('y1', 0)
         .attr('x2', el.width)
         .attr('y2', 0)
-        .attr('stroke', '#919191')
+        .attr('stroke', '#FFFFFF')
         .attr('class', 'cross_line x')
         .style('display', 'none')
+      
+      // Image overlay
       _g.append('rect')
         .attr('class', 'overlay')
         .attr('width', el.width)
@@ -430,8 +595,9 @@ export default {
         .attr('height', function (d) {
           return d[3]
         })
-        .on('end', function () {
+        .on('end', function (el) {
           // Image zoom
+          console.log(el)
           d3.select(imgWrapper.parentElement).call(zoom(cpnt, imgWrapper)).on('dblclick.zoom', null)
           updateRegionElements(cpnt.img)
         })
@@ -522,11 +688,35 @@ export default {
         _g = d3.select('#g_'),
         idx
 
-      // rects for resizing
       _g.selectAll('rect.region')
         .each(function () {
           idx = d3.select(this).attr('index')
-          // Icon to remove the region
+          // rects to resize the region
+          _g.append('rect')
+            .attr('stroke-width', 2)
+            .attr('stroke', '#333333')
+            .attr('fill', 'white')
+            .attr('index', idx)
+            .classed('resize top_left', true)
+          _g.append('rect')
+            .attr('stroke-width', 2)
+            .attr('stroke', '#333333')
+            .attr('fill', 'white')
+            .attr('index', idx)
+            .classed('resize top_right', true)
+          _g.append('rect')
+            .attr('stroke-width', 2)
+            .attr('stroke', '#333333')
+            .attr('fill', 'white')
+            .attr('index', idx)
+            .classed('resize bottom_right', true)
+          _g.append('rect')
+            .attr('stroke-width', 2)
+            .attr('stroke', '#333333')
+            .attr('fill', 'white')
+            .attr('index', idx)
+            .classed('resize bottom_left', true)
+          // icon to remove the region
           _g.append('svg:foreignObject')
             .attr('index', idx)
             .attr('class', 'delete_region_wrapper')
@@ -535,17 +725,21 @@ export default {
             })
             .append('xhtml:i')
             .attr('class', 'delete_region')
-          updateRegionElements(cpnt.img)
         })
         .moveToFront()
-      _g.selectAll('.region_label,.region_label_background,.delete_region_wrapper').moveToFront()
+      updateRegionElements(cpnt.img)
+      _g.selectAll('rect.resize').call(
+        d3.drag().on('drag', function (event) {
+          resized(event, this, cpnt.img)
+        })
+      )
       this.$emit('set-editing', true)
     },
     disableEditingMode: function () {
       let _g = d3.select('#g_')
       _g.select('rect.overlay').moveToFront()
       _g.selectAll('.region_label_background,.region_label').moveToFront()
-      _g.selectAll('.delete_region_wrapper').remove()
+      _g.selectAll('rect.resize,.delete_region_wrapper').remove()
       this.$emit('set-editing', false)
     },
     getColorFn: function (labels) {

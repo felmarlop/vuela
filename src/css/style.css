@@ -72,6 +72,9 @@
     cursor: pointer;
     border: none;
 }
+#app .image_dialog .resize:hover{
+    cursor: pointer;
+}
 #app .image_dialog .image_wrapper {
     max-height: 700px;
     padding: 20px 0 20px 0;
