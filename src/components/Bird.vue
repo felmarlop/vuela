@@ -93,6 +93,7 @@ function resized(event, square, img) {
   var imgWrapper = img.parentElement,
     minSize = 1,
     region,
+    rgD3,
     label,
     diffx,
     diffy,
@@ -105,14 +106,15 @@ function resized(event, square, img) {
     dSquare
 
   dSquare = d3.select(square)
-  region = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + dSquare.attr('index') + '"]')[0])
+  region = imgWrapper.querySelectorAll('rect.region[index="' + dSquare.attr('index') + '"]')[0]
+  rgD3 = d3.select(region)
   diffx = parseFloat(event.x) - parseFloat(event.subject.x)
   diffy = parseFloat(event.y) - parseFloat(event.subject.y)
-  rwidth = parseFloat(region.attr('width'))
-  rheight = parseFloat(region.attr('height'))
+  rwidth = parseFloat(rgD3.attr('width'))
+  rheight = parseFloat(rgD3.attr('height'))
   if (dSquare.classed('top_left')) {
-    newX = diffx + parseFloat(region.attr('x'))
-    newY = diffy + parseFloat(region.attr('y'))
+    newX = diffx + parseFloat(rgD3.attr('x'))
+    newY = diffy + parseFloat(rgD3.attr('y'))
     if (newX < 0) {
       newX = 0
       diffx = 0
@@ -124,13 +126,13 @@ function resized(event, square, img) {
     newW = rwidth - diffx
     newH = rheight - diffy
   } else if (dSquare.classed('bottom_right')) {
-    newX = parseFloat(region.attr('x'))
-    newY = parseFloat(region.attr('y'))
+    newX = parseFloat(rgD3.attr('x'))
+    newY = parseFloat(rgD3.attr('y'))
     newW = rwidth + diffx
     newH = rheight + diffy
   } else if (dSquare.classed('bottom_left')) {
-    newX = diffx + parseFloat(region.attr('x'))
-    newY = parseFloat(region.attr('y'))
+    newX = diffx + parseFloat(rgD3.attr('x'))
+    newY = parseFloat(rgD3.attr('y'))
     if (newX < 0) {
       newX = 0
       diffx = 0
@@ -138,8 +140,8 @@ function resized(event, square, img) {
     newW = rwidth - diffx
     newH = rheight + diffy
   } else if (dSquare.classed('top_right')) {
-    newX = parseFloat(region.attr('x'))
-    newY = diffy + parseFloat(region.attr('y'))
+    newX = parseFloat(rgD3.attr('x'))
+    newY = diffy + parseFloat(rgD3.attr('y'))
     if (newY < 0) {
       newY = 0
       diffy = 0
@@ -153,28 +155,31 @@ function resized(event, square, img) {
   // Fix new with and height
   if (newW < minSize) {
     newW = minSize
-    newX = parseFloat(region.attr('x'))
+    newX = parseFloat(rgD3.attr('x'))
   }
   if (newH < minSize) {
     newH = minSize
-    newY = parseFloat(region.attr('y'))
+    newY = parseFloat(rgD3.attr('y'))
   }
   if (newX + newW > img.width) newW = img.width - newX
   if (newY + newH > img.height) newH = img.height - newY
 
   // Update region data
-  region.attr('x', newX).attr('y', newY).attr('width', newW).attr('height', newH)
-  label = region.data()[0][4]
-  region.data([[newX, newY, newW, newH, label]])
+  rgD3.attr('x', newX).attr('y', newY).attr('width', newW).attr('height', newH)
+  label = rgD3.data()[0][4]
+  rgD3.data([[newX, newY, newW, newH, label]])
   event.subject['x'] = event.x
   event.subject['y'] = event.y
 
-  updateRegionElements(img)
+  updateRegionElements(rgD3, img)
 }
 
 // Method to update elements binded to a region
-function updateRegionElements(img) {
+function updateRegionElements(region, img) {
   let imgWrapper = img.parentElement,
+    idx = region.attr('index'),
+    rgData = region.data()[0],
+    txt = imgWrapper.querySelectorAll('text.region_label[index="' + idx + '"]')[0],
     height = 18,
     padding = 5,
     radius = 3,
@@ -184,142 +189,93 @@ function updateRegionElements(img) {
     rectLimit = 0,
     resizesz = 8,
     deleteSize = 15,
-    rg,
-    txt,
     res,
-    closeX,
-    idx
+    closeX
 
-  d3.selectAll('text.region_label')
-    .classed('to_remove', function (d) {
-      return !d[4]
+  d3.select(txt)
+    .attr('x', function () {
+      return parseFloat(rgData[0]) + padding
     })
-    .attr('x', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      return parseFloat(rg.attr('x')) + padding
-    })
-    .attr('y', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      res = parseFloat(rg.attr('y')) - padding - margin
+    .attr('y', function () {
+      res = parseFloat(rgData[1]) - padding - margin
       if (res < textLimit) res = textLimit
       return res
     })
-    .style('opacity', 1)
-
-  d3.selectAll('rect.region_label_background')
-    .classed('to_remove', function (d) {
-      return !d[4]
+    .style('opacity', function () {
+      return rgData && rgData[4] ? 1 : 0
     })
+    .text(function (d) {
+      return d[4] || ''
+    })
+
+  d3.select(imgWrapper.querySelectorAll('rect.region_label_background[index="' + idx + '"]')[0])
     .attr('rx', radius)
     .attr('ry', radius)
-    .attr('x', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      return parseFloat(rg.attr('x'))
+    .attr('x', function () {
+      return parseFloat(rgData[0])
     })
-    .attr('y', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      res = parseFloat(rg.attr('y')) - height - margin
+    .attr('y', function () {
+      res = parseFloat(rgData[1]) - height - margin
       if (res < rectLimit) res = rectLimit
       return res
     })
-    .attr('width', function (_, i) {
-      txt = imgWrapper.querySelectorAll('text.region_label[index="' + i + '"]')[0]
+    .attr('width', function () {
       return txt.getComputedTextLength() + 2 * padding
     })
     .attr('height', height)
     .transition()
-    .style('opacity', 1)
-
-  d3.selectAll('.delete_region_wrapper')
-    .classed('to_remove', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      return rg.empty()
+    .style('opacity', function () {
+      return rgData && rgData[4] ? 1 : 0
     })
-    .attr('x', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      if (rg.empty()) return 0
-      closeX = parseFloat(rg.attr('x')) + parseFloat(rg.attr('width')) + closeMargin
+
+  d3.select(imgWrapper.querySelectorAll('.delete_region_wrapper[index="' + idx + '"]')[0])
+    .attr('x', function () {
+      closeX = parseFloat(rgData[0]) + parseFloat(rgData[2]) + closeMargin
       if (closeX + deleteSize >= img.width) closeX = img.width - deleteSize
       return closeX
     })
-    .attr('y', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      if (rg.empty()) return 0
-      return parseFloat(rg.attr('y'))
+    .attr('y', function () {
+      return parseFloat(rgData[1])
     })
     .attr('width', deleteSize)
     .attr('height', deleteSize)
 
-  d3.selectAll('rect.top_left')
-    .classed('to_remove', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      return rg.empty()
+  d3.select(imgWrapper.querySelectorAll('rect.top_left[index="' + idx + '"]')[0])
+    .attr('x', function () {
+      return rgData[0] - resizesz / 2
     })
-    .attr('x', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      if (rg.empty()) return 0
-      return rg.attr('x') - resizesz / 2
-    })
-    .attr('y', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      if (rg.empty()) return 0
-      return rg.attr('y') - resizesz / 2
+    .attr('y', function () {
+      return rgData[1] - resizesz / 2
     })
     .attr('width', resizesz)
     .attr('height', resizesz)
-  d3.selectAll('rect.top_right')
-    .classed('to_remove', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      return rg.empty()
+  d3.select(imgWrapper.querySelectorAll('rect.top_right[index="' + idx + '"]')[0])
+    .attr('x', function () {
+      return parseFloat(rgData[0]) + parseFloat(rgData[2] - resizesz / 2)
     })
-    .attr('x', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      if (rg.empty()) return 0
-      return parseFloat(rg.attr('x')) + parseFloat(rg.attr('width') - resizesz / 2)
-    })
-    .attr('y', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      if (rg.empty()) return 0
-      return rg.attr('y') - resizesz / 2
+    .attr('y', function () {
+      return rgData[1] - resizesz / 2
     })
     .attr('width', resizesz)
     .attr('height', resizesz)
-  d3.selectAll('rect.bottom_right')
-    .classed('to_remove', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      return rg.empty()
+  d3.select(imgWrapper.querySelectorAll('rect.bottom_right[index="' + idx + '"]')[0])
+    .attr('x', function () {
+      return parseFloat(rgData[0]) + parseFloat(rgData[2]) - resizesz / 2
     })
-    .attr('x', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      if (rg.empty()) return 0
-      return parseFloat(rg.attr('x')) + parseFloat(rg.attr('width')) - resizesz / 2
-    })
-    .attr('y', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      if (rg.empty()) return 0
-      return parseFloat(rg.attr('y')) + parseFloat(rg.attr('height')) - resizesz / 2
+    .attr('y', function () {
+      return parseFloat(rgData[1]) + parseFloat(rgData[3]) - resizesz / 2
     })
     .attr('width', resizesz)
     .attr('height', resizesz)
-  d3.selectAll('rect.bottom_left')
-    .classed('to_remove', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      return rg.empty()
+  d3.select(imgWrapper.querySelectorAll('rect.bottom_left[index="' + idx + '"]')[0])
+    .attr('x', function () {
+      return rgData[0] - resizesz / 2
     })
-    .attr('x', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      if (rg.empty()) return 0
-      return rg.attr('x') - resizesz / 2
-    })
-    .attr('y', function (_, i) {
-      rg = d3.select(imgWrapper.querySelectorAll('rect.region[index="' + i + '"]')[0])
-      if (rg.empty()) return 0
-      return parseFloat(rg.attr('y')) + parseFloat(rg.attr('height')) - resizesz / 2
+    .attr('y', function () {
+      return parseFloat(rgData[1]) + parseFloat(rgData[3]) - resizesz / 2
     })
     .attr('width', resizesz)
     .attr('height', resizesz)
-
-  d3.selectAll('.to_remove').remove()
 
   // Sort elements
   d3.selectAll('rect.region').each(function () {
@@ -327,7 +283,7 @@ function updateRegionElements(img) {
     d3.select(imgWrapper.querySelectorAll('rect.region_label_background[index="' + idx + '"]')[0]).moveToFront()
     d3.select(imgWrapper.querySelectorAll('text.region_label[index="' + idx + '"]')[0]).moveToFront()
   })
-  if (!d3.select('rect.adding').empty()) d3.select('rect.adding').moveToFront()
+  if (!d3.select('rect.region.adding').empty()) d3.select('rect.region.adding').moveToFront()
   d3.select('rect.overlay').moveToFront()
   d3.selectAll('rect.region').each(function () {
     idx = d3.select(this).attr('index')
@@ -351,8 +307,7 @@ function zoom(cpnt, imgWrapper) {
         x = wheel ? cpnt.transform['x'] : transform['x'],
         y = wheel ? cpnt.transform['y'] : transform['y']
 
-      d3.selectAll('.cross_line').style('display', 'none')
-      if (d3.select('rect.adding').empty()) initPoint = null
+      if (d3.select('rect.region.adding').empty()) initPoint = null
 
       cpnt.transform = { k: k, x: x, y: y }
       cpnt.$emit('set-zoom', k)
@@ -493,7 +448,7 @@ export default {
         .attr('stroke', '#FFFFFF')
         .attr('class', 'cross_line x')
         .style('display', 'none')
-      
+
       // Image overlay
       _g.append('rect')
         .attr('class', 'overlay')
@@ -501,7 +456,7 @@ export default {
         .attr('height', el.height)
         .style('fill', 'none')
         .on('mousedown.overlay', function (ev) {
-          if (d3.select('rect.adding').empty()) {
+          if (d3.select('rect.region.adding').empty()) {
             initPoint = d3.pointer(ev)
           } else {
             cpnt.finishRegion()
@@ -513,7 +468,7 @@ export default {
           d3.select('.cross_line.x').attr('y1', pointer[1]).attr('y2', pointer[1])
           d3.select('.cross_line.y').attr('x1', pointer[0]).attr('x2', pointer[0])
           if (initPoint) {
-            let addingRect = d3.select('rect.adding')
+            let addingRect = d3.select('rect.region.adding')
             if (pointer[0] >= initPoint[0]) {
               addingRect.attr('width', pointer[0] - initPoint[0])
             } else {
@@ -595,11 +550,10 @@ export default {
         .attr('height', function (d) {
           return d[3]
         })
-        .on('end', function (el) {
+        .on('end', function () {
           // Image zoom
-          console.log(el)
           d3.select(imgWrapper.parentElement).call(zoom(cpnt, imgWrapper)).on('dblclick.zoom', null)
-          updateRegionElements(cpnt.img)
+          updateRegionElements(d3.select(this), cpnt.img)
         })
       regs.exit().remove()
 
@@ -613,7 +567,10 @@ export default {
         .attr('index', function (_, i) {
           return i
         })
-        .attr('class', 'region_label')
+        .classed('region_label', true)
+        .classed('adding', function (d) {
+          return !d[4]
+        })
         .style('font-size', '0.98em')
         .style('stroke', 'rgb(255, 255, 255)')
         .style('color', 'rgb(255, 255, 255)')
@@ -621,9 +578,6 @@ export default {
         .style('stroke-width', 0)
         .style('opacity', function () {
           return d3.select(this).classed('new') ? 0 : 1
-        })
-        .text(function (d) {
-          return d[4] || ''
         })
       rglabels.exit().remove()
       let lbBackgrounds = _g.selectAll('rect.region_label_background').classed('new', false).data(validRegions)
@@ -635,17 +589,20 @@ export default {
         .attr('index', function (_, i) {
           return i
         })
-        .attr('class', 'region_label_background')
+        .classed('region_label_background', true)
+        .classed('adding', function (d) {
+          return !d[4]
+        })
         .attr('stroke', 'rgb(255, 255, 255)')
         .attr('stroke-width', 1)
         .attr('fill', 'rgb(0, 0, 0)')
-        .style('opacity', function () {
-          return d3.select(this).classed('new') ? 0 : 1
+        .style('opacity', function (d) {
+          return d3.select(this).classed('new') || !d[4] ? 0 : 1
         })
       lbBackgrounds.exit().remove()
     },
     addNewRegion: function () {
-      if (!d3.select('rect.adding').empty() || !initPoint || !this.selectedLabel) return false
+      if (!d3.select('rect.region.adding').empty() || !initPoint || !this.selectedLabel) return false
 
       let x = initPoint[0],
         y = initPoint[1]
@@ -657,8 +614,9 @@ export default {
       this.setRegions(data)
     },
     finishRegion: function () {
-      let data = d3.selectAll('rect.region').data(),
-        addingRect = d3.select('rect.adding'),
+      let addingRect = d3.select('rect.region.adding'),
+        addingText = d3.select('text.region_label.adding'),
+        addingBg = d3.select('rect.region_label_background.adding'),
         newRegion = [
           parseInt(addingRect.attr('x')),
           parseInt(addingRect.attr('y')),
@@ -668,66 +626,59 @@ export default {
         ]
 
       initPoint = null
-      addingRect.classed('adding', false)
-
-      data = data.slice(0, -1)
-      if (newRegion[2] && newRegion[3] && this.selectedLabel) {
-        data.push(newRegion)
-      }
-      this.setRegions(data)
-      updateRegionElements(this.img)
+      addingRect.data([newRegion]).classed('adding', false)
+      addingText.data([newRegion]).classed('adding', false)
+      addingBg.data([newRegion]).classed('adding', false)
+      updateRegionElements(addingRect, this.img)
     },
     removeRegionByIndex(idx) {
-      let data = d3.selectAll('rect.region').data()
-      data.splice(idx, 1)
-      this.setRegions(data)
-      updateRegionElements(this.img)
+      let imgWrapper = this.img.parentElement
+      d3.selectAll(imgWrapper.querySelectorAll('[index="' + idx + '"]')).remove()
     },
     enableEditingMode: function () {
       let cpnt = this,
         _g = d3.select('#g_'),
         idx
 
-      _g.selectAll('rect.region')
-        .each(function () {
-          idx = d3.select(this).attr('index')
-          // rects to resize the region
-          _g.append('rect')
-            .attr('stroke-width', 2)
-            .attr('stroke', '#333333')
-            .attr('fill', 'white')
-            .attr('index', idx)
-            .classed('resize top_left', true)
-          _g.append('rect')
-            .attr('stroke-width', 2)
-            .attr('stroke', '#333333')
-            .attr('fill', 'white')
-            .attr('index', idx)
-            .classed('resize top_right', true)
-          _g.append('rect')
-            .attr('stroke-width', 2)
-            .attr('stroke', '#333333')
-            .attr('fill', 'white')
-            .attr('index', idx)
-            .classed('resize bottom_right', true)
-          _g.append('rect')
-            .attr('stroke-width', 2)
-            .attr('stroke', '#333333')
-            .attr('fill', 'white')
-            .attr('index', idx)
-            .classed('resize bottom_left', true)
-          // icon to remove the region
-          _g.append('svg:foreignObject')
-            .attr('index', idx)
-            .attr('class', 'delete_region_wrapper')
-            .on('mousedown', function () {
-              cpnt.removeRegionByIndex(d3.select(this).attr('index'))
-            })
-            .append('xhtml:i')
-            .attr('class', 'delete_region')
-        })
-        .moveToFront()
-      updateRegionElements(cpnt.img)
+      _g.selectAll('rect.region').each(function () {
+        idx = d3.select(this).attr('index')
+        d3.select(this).moveToFront()
+        // rects to resize the region
+        _g.append('rect')
+          .attr('stroke-width', 2)
+          .attr('stroke', '#333333')
+          .attr('fill', 'white')
+          .attr('index', idx)
+          .classed('resize top_left', true)
+        _g.append('rect')
+          .attr('stroke-width', 2)
+          .attr('stroke', '#333333')
+          .attr('fill', 'white')
+          .attr('index', idx)
+          .classed('resize top_right', true)
+        _g.append('rect')
+          .attr('stroke-width', 2)
+          .attr('stroke', '#333333')
+          .attr('fill', 'white')
+          .attr('index', idx)
+          .classed('resize bottom_right', true)
+        _g.append('rect')
+          .attr('stroke-width', 2)
+          .attr('stroke', '#333333')
+          .attr('fill', 'white')
+          .attr('index', idx)
+          .classed('resize bottom_left', true)
+        // icon to remove the region
+        _g.append('svg:foreignObject')
+          .attr('index', idx)
+          .attr('class', 'delete_region_wrapper')
+          .on('mousedown', function () {
+            cpnt.removeRegionByIndex(d3.select(this).attr('index'))
+          })
+          .append('xhtml:i')
+          .attr('class', 'delete_region')
+        updateRegionElements(d3.select(this), cpnt.img)
+      })
       _g.selectAll('rect.resize').call(
         d3.drag().on('drag', function (event) {
           resized(event, this, cpnt.img)
