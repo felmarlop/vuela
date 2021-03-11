@@ -1,9 +1,16 @@
 <template>
   <div class="birds_wrapper">
     <transition-group name="image-list" class="birds" appear>
-      <bird :key="b.url" :bird="b" @open-modal="openModal" v-for="b in birds" />
+      <bird :key="'grid_' + b.url" :bird="b" @open-modal="openModal" v-for="b in birds" />
     </transition-group>
-    <idialog ref="idialog" :dialog="dialog" :bird="selectedBird" :labels="labels" @close-modal="closeModal" />
+    <idialog
+      ref="idialog"
+      :dialog="dialog"
+      :bird="selectedBird"
+      :labels="labels"
+      @close-modal="closeModal"
+      @update-labels="updateLabels"
+    />
     <v-btn @click="shuffle(true)">Shuffle</v-btn>
   </div>
 </template>
@@ -104,6 +111,9 @@ export default {
       shuffleInterval = setInterval(function () {
         cm.shuffle()
       }, 5000)
+    },
+    updateLabels: function (val) {
+      if (val) this.labels = val
     },
     openModal: function (bird) {
       if (bird) this.selectedBird = bird

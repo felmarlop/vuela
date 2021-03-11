@@ -29,6 +29,7 @@
             :labels="labels"
             :selected-label="selectedLabel"
             :editing-mode="editingMode"
+            @update-labels="$emit('update-labels', $event)"
             @image-loaded="imgLoaded = true"
             @image-loading="imgLoaded = false"
             @set-zoom="setZoom"
@@ -84,6 +85,19 @@
             :label="editingMode ? 'Disable editing mode' : 'Enable editing mode'"
           >
           </v-switch>
+          <v-btn elevation="2" class="d-inherit mb-md-5" @click="$refs.birdComponent.removeAllRegions()">
+            Remove all regions
+          </v-btn>
+          <v-divider></v-divider>
+          <v-list rounded class="labels overflow-y-auto">
+            <v-list-item-group v-model="selectedItem" color="secondary">
+              <v-list-item :key="'label_' + item" class="d-inline-block" v-for="item in labels">
+                <v-list-item-content>
+                  <v-list-item-title v-text="item"></v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list-item-group>
+          </v-list>
         </v-col>
       </v-row>
     </v-card>
@@ -122,7 +136,7 @@ export default {
       brightness: DEFAULT_LUMINOSITY,
       contrast: DEFAULT_LUMINOSITY,
       zoom: DEFAULT_ZOOM,
-      selectedLabel: 'test label',
+      selectedLabel: 'test_label',
       editingMode: false,
       imgLoaded: false
     }
@@ -131,6 +145,14 @@ export default {
     imgStyle: function () {
       return {
         filter: 'brightness(' + this.brightness + '%) contrast(' + this.contrast + '%)'
+      }
+    },
+    selectedItem: {
+      get: function () {
+        return this.labels.indexOf(this.selectedLabel) >= 0 ? this.labels.indexOf(this.selectedLabel) : null
+      },
+      set: function (idx) {
+        if (idx >= 0 && idx < this.labels.length) this.selectedLabel = this.labels[idx]
       }
     }
   },

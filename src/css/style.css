@@ -190,6 +190,9 @@
     text-align: left;
     left: 60%;
 }
+#app .image_dialog .v-list.labels {
+    max-height: 300px;
+}
 #app .birds .image_wrapper img {
     height: 100%;
     max-width: 148px;

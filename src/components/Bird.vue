@@ -407,6 +407,9 @@ export default {
     }
   },
   computed: {
+    labelSet: function () {
+      return this.labels.slice()
+    },
     birdUrl: function () {
       this.$emit('image-loading')
       return this.raw ? this.bird.url.replace('image', 'image/raw') : this.bird.url
@@ -520,7 +523,6 @@ export default {
         _g = d3.select('#g_'),
         imgWrapper = cpnt.img.parentElement,
         validRegions = [],
-        labelSet = this.labels || [],
         ic = 0,
         currentRg,
         colorFn
@@ -529,11 +531,12 @@ export default {
         currentRg = data[ic]
         if (currentRg.length == 5) {
           validRegions.push(currentRg)
-          if (labelSet.indexOf(currentRg[4]) == -1) labelSet.push(currentRg[4] || 'test')
+          if (currentRg[4] && this.labelSet.indexOf(currentRg[4]) == -1) this.labelSet.push(currentRg[4])
         }
         ic++
       }
-      colorFn = this.getColorFn(labelSet)
+      this.$emit('update-labels', this.labelSet)
+      colorFn = this.getColorFn(this.labelSet)
 
       // Image regions
       let regs = _g.selectAll('rect.region').classed('new', false).data(validRegions)
@@ -636,11 +639,17 @@ export default {
         })
       lbBackgrounds.exit().remove()
     },
+    removeAllRegions: function () {
+      d3.selectAll('.delete_region_wrapper,.resize').remove()
+      this.setRegions([])
+    },
     addNewRegion: function () {
       if (!d3.select('rect.region.adding').empty() || !initPoint || !this.selectedLabel) return false
 
       let x = initPoint[0],
         y = initPoint[1]
+
+      if (this.labelSet.indexOf(this.selectedLabel) == -1) this.labelSet.push(this.selectedLabel)
       if (x > this.img.width || y > this.img.height) return false
       if (d3.selectAll('rect.region').size() >= REGIONS_ALLOWED) return false
 
