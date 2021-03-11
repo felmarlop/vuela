@@ -88,9 +88,35 @@ const CATEGORY_COLORS = [
 
 let initPoint = null
 
+// Method to drag a region
+function dragged(event, rgD3, cpnt) {
+  if (!cpnt.editingMode) return
+
+  let img = cpnt.img,
+    rgData = rgD3.data()[0],
+    newX = parseFloat(event.x) - parseFloat(event.subject.x || event.x) + parseFloat(rgD3.attr('x')),
+    newY = parseFloat(event.y) - parseFloat(event.subject.y || event.y) + parseFloat(rgD3.attr('y'))
+  if (newX < 0) newX = 0
+  if (newY < 0) newY = 0
+
+  let rwidth = parseFloat(rgD3.attr('width')),
+    rheight = parseFloat(rgD3.attr('height'))
+  if (newX + rwidth > img.width) newX = img.width - rwidth
+  if (newY + rheight > img.height) newY = img.height - rheight
+
+  rgD3
+    .attr('x', newX)
+    .attr('y', newY)
+    .data([[newX, newY, rgData[2], rgData[3], rgData[4]]])
+  event.subject['x'] = event.x
+  event.subject['y'] = event.y
+  updateRegionElements(rgD3, cpnt)
+}
+
 // Method to resize a region
-function resized(event, square, img) {
-  var imgWrapper = img.parentElement,
+function resized(event, square, cpnt) {
+  let img = cpnt.img,
+    imgWrapper = img.parentElement,
     minSize = 1,
     region,
     rgD3,
@@ -170,13 +196,13 @@ function resized(event, square, img) {
   rgD3.data([[newX, newY, newW, newH, label]])
   event.subject['x'] = event.x
   event.subject['y'] = event.y
-
-  updateRegionElements(rgD3, img)
+  updateRegionElements(rgD3, cpnt)
 }
 
 // Method to update elements binded to a region
-function updateRegionElements(region, img) {
-  let imgWrapper = img.parentElement,
+function updateRegionElements(region, cpnt) {
+  let img = cpnt.img,
+    imgWrapper = img.parentElement,
     idx = region.attr('index'),
     rgData = region.data()[0],
     txt = imgWrapper.querySelectorAll('text.region_label[index="' + idx + '"]')[0],
@@ -278,21 +304,25 @@ function updateRegionElements(region, img) {
     .attr('height', resizesz)
 
   // Sort elements
-  d3.selectAll('rect.region').each(function () {
-    idx = d3.select(this).attr('index')
-    d3.select(imgWrapper.querySelectorAll('rect.region_label_background[index="' + idx + '"]')[0]).moveToFront()
-    d3.select(imgWrapper.querySelectorAll('text.region_label[index="' + idx + '"]')[0]).moveToFront()
-  })
-  if (!d3.select('rect.region.adding').empty()) d3.select('rect.region.adding').moveToFront()
-  d3.select('rect.overlay').moveToFront()
-  d3.selectAll('rect.region').each(function () {
-    idx = d3.select(this).attr('index')
-    d3.select(imgWrapper.querySelectorAll('.delete_region_wrapper[index="' + idx + '"]')[0]).moveToFront()
-    d3.select(imgWrapper.querySelectorAll('rect.top_left[index="' + idx + '"]')[0]).moveToFront()
-    d3.select(imgWrapper.querySelectorAll('rect.top_right[index="' + idx + '"]')[0]).moveToFront()
-    d3.select(imgWrapper.querySelectorAll('rect.bottom_right[index="' + idx + '"]')[0]).moveToFront()
-    d3.select(imgWrapper.querySelectorAll('rect.bottom_left[index="' + idx + '"]')[0]).moveToFront()
-  })
+  if (cpnt.editingMode) {
+    d3.selectAll('rect.region,rect.resize').moveToFront()
+    d3.selectAll('rect.region').each(function () {
+      idx = d3.select(this).attr('index')
+      d3.select(imgWrapper.querySelectorAll('rect.region_label_background[index="' + idx + '"]')[0]).moveToFront()
+      d3.select(imgWrapper.querySelectorAll('text.region_label[index="' + idx + '"]')[0]).moveToFront()
+    })
+    d3.selectAll('.delete_region_wrapper').moveToFront()
+  } else if (d3.select('rect.adding').empty()) {
+    d3.select('rect.overlay').moveToFront()
+    d3.selectAll('rect.region').each(function () {
+      idx = d3.select(this).attr('index')
+      d3.select(imgWrapper.querySelectorAll('rect.region_label_background[index="' + idx + '"]')[0]).moveToFront()
+      d3.select(imgWrapper.querySelectorAll('text.region_label[index="' + idx + '"]')[0]).moveToFront()
+    })
+  } else {
+    if (!d3.select('rect.adding').empty()) d3.select('rect.adding').moveToFront()
+    d3.select('rect.overlay').moveToFront()
+  }
 }
 
 function zoom(cpnt, imgWrapper) {
@@ -533,6 +563,11 @@ export default {
         .attr('y', function (d) {
           return d[1] + d[3] / 2
         })
+        .call(
+          d3.drag().on('drag', function (event) {
+            dragged(event, d3.select(this), cpnt)
+          })
+        )
         .transition()
         .duration(function () {
           if (d3.select(this).classed('new') && !d3.select(this).classed('adding')) return 400
@@ -553,7 +588,7 @@ export default {
         .on('end', function () {
           // Image zoom
           d3.select(imgWrapper.parentElement).call(zoom(cpnt, imgWrapper)).on('dblclick.zoom', null)
-          updateRegionElements(d3.select(this), cpnt.img)
+          updateRegionElements(d3.select(this), cpnt)
         })
       regs.exit().remove()
 
@@ -629,7 +664,7 @@ export default {
       addingRect.data([newRegion]).classed('adding', false)
       addingText.data([newRegion]).classed('adding', false)
       addingBg.data([newRegion]).classed('adding', false)
-      updateRegionElements(addingRect, this.img)
+      updateRegionElements(addingRect, this)
     },
     removeRegionByIndex(idx) {
       let imgWrapper = this.img.parentElement
@@ -677,11 +712,11 @@ export default {
           })
           .append('xhtml:i')
           .attr('class', 'delete_region')
-        updateRegionElements(d3.select(this), cpnt.img)
+        updateRegionElements(d3.select(this), cpnt)
       })
       _g.selectAll('rect.resize').call(
         d3.drag().on('drag', function (event) {
-          resized(event, this, cpnt.img)
+          resized(event, this, cpnt)
         })
       )
       this.$emit('set-editing', true)

@@ -49,6 +49,10 @@
     z-index: 3;
     cursor: crosshair;
 }
+#app .image_dialog text.region_label,
+#app .image_dialog rect.region_label_background {
+    cursor: pointer;
+}
 #app .image_dialog .delete_region{
     display: inline-block;
     background-color: rgba(0,0,0,0.7);
@@ -72,8 +76,16 @@
     cursor: pointer;
     border: none;
 }
-#app .image_dialog .resize:hover{
-    cursor: pointer;
+#app .image_dialog rect.region{
+    cursor: move;
+}
+#app .image_dialog .resize.top_left,
+#app .image_dialog .resize.bottom_right{
+    cursor: nwse-resize;
+}
+#app .image_dialog .resize.top_right,
+#app .image_dialog .resize.bottom_left{
+    cursor: nesw-resize;
 }
 #app .image_dialog .image_wrapper {
     max-height: 700px;
