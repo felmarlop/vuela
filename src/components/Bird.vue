@@ -443,6 +443,9 @@ export default {
       this.isLoaded = true
       this.$emit('image-loaded')
     },
+    error: function () {
+      this.isError = true
+    },
     init: function (el) {
       let cpnt = this
       cpnt.img = el
@@ -462,7 +465,7 @@ export default {
         .append('g')
         .attr('id', 'g_')
 
-      cpnt.setRegions(cpnt.bird.regions || [])
+      cpnt.setRegions(cpnt.bird.regions || [], true)
 
       // Cross lines
       _g.append('line')
@@ -518,7 +521,7 @@ export default {
           d3.selectAll('.cross_line').style('display', 'none')
         })
     },
-    setRegions: function (data) {
+    setRegions: function (data, animation) {
       let cpnt = this,
         _g = d3.select('#g_'),
         imgWrapper = cpnt.img.parentElement,
@@ -573,7 +576,7 @@ export default {
         )
         .transition()
         .duration(function () {
-          if (d3.select(this).classed('new') && !d3.select(this).classed('adding')) return 400
+          if (animation && d3.select(this).classed('new') && !d3.select(this).classed('adding')) return 400
           return 0
         })
         .attr('x', function (d) {
@@ -740,6 +743,9 @@ export default {
     getColorFn: function (labels) {
       return d3.scaleOrdinal().range(CATEGORY_COLORS).domain(labels)
     },
+    resetRegions: function () {
+      this.setRegions(this.bird.regions || [])
+    },
     resetZoom: function () {
       if (!this.img) return false
       let imgWrapper = this.img.parentElement
@@ -749,9 +755,6 @@ export default {
         d3.zoomIdentity.translate(this.transform['x'], this.transform['y']).scale(DEFAULT_ZOOM)
       )
       this.$emit('set-zoom', DEFAULT_ZOOM)
-    },
-    error: function () {
-      this.isError = true
     }
   }
 }
