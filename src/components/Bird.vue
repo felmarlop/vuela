@@ -824,7 +824,9 @@ export default {
       this.$emit('set-zoom', cpnt.actualSize)
     },
     resetRegions: function () {
-      this.setRegions(this.bird.regions || [])
+      d3.selectAll('.delete_region_wrapper,.resize').remove()
+      this.setRegions(this.bird.regions || [], true)
+      if (this.editingMode) this.enableEditingMode()
     },
     resetZoom: function () {
       if (!this.img) return false
