@@ -23,6 +23,7 @@ const DEFAULT_ZOOM = 1
 const ZOOM_MAX = 8
 const ZOOM_MIN = 0.01
 const REGIONS_ALLOWED = 40
+const WRAPPER_DIMENSION = 720
 const CATEGORY_COLORS = [
   '#1f77b4',
   '#ff7f0e',
@@ -418,6 +419,14 @@ export default {
     }
   },
   computed: {
+    actualSize: function () {
+      if (!this.isLoaded || !this.img) return null
+      let fitWidth = parseFloat((WRAPPER_DIMENSION / this.img.naturalHeight) * this.img.naturalWidth),
+        k = this.img.naturalWidth / fitWidth
+      if (k < ZOOM_MIN) k = ZOOM_MIN
+      if (k > ZOOM_MAX) k = ZOOM_MAX
+      return k
+    },
     labelSet: function () {
       return this.labels.slice()
     },
@@ -765,6 +774,16 @@ export default {
     },
     getColorFn: function (labels) {
       return d3.scaleOrdinal().range(CATEGORY_COLORS).domain(labels)
+    },
+    setActualSize: function () {
+      if (!this.isLoaded) return false
+      let cpnt = this,
+        imgWrapper = this.img.parentElement
+      d3.select(imgWrapper.parentElement).call(
+        zoom(cpnt, imgWrapper).transform,
+        d3.zoomIdentity.translate(cpnt.transform['x'], cpnt.transform['y']).scale(cpnt.actualSize)
+      )
+      this.$emit('set-zoom', cpnt.actualSize)
     },
     resetRegions: function () {
       this.setRegions(this.bird.regions || [])

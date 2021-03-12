@@ -41,7 +41,20 @@
           <div class="buttons_img" v-if="imgLoaded">
             <div class="group_ico">
               <span class="zoom_value value">Ratio: {{ zoom }}</span>
-              <div id="zoom_image" class="zoom_image fit_image ico" @click="$refs.birdComponent.resetZoom()">
+              <div
+                id="zoom_image"
+                class="zoom_image actual_size ico"
+                :class="{ active: actualSizeActive }"
+                @click="$refs.birdComponent.setActualSize()"
+              >
+                <span></span>
+              </div>
+              <div
+                id="zoom_image"
+                class="zoom_image fit_image ico"
+                :class="{ active: resetZoomActive }"
+                @click="$refs.birdComponent.resetZoom()"
+              >
                 <span></span>
               </div>
               <div id="zoom_image" class="zoom_image zoom_out_image ico" @click="decreaseZoom()">
@@ -161,6 +174,12 @@ export default {
       return {
         filter: 'brightness(' + this.brightness + '%) contrast(' + this.contrast + '%)'
       }
+    },
+    actualSizeActive: function () {
+      return this.zoom == Math.round(this.$refs.birdComponent.actualSize * 100) / 100
+    },
+    resetZoomActive: function () {
+      return this.zoom == DEFAULT_ZOOM
     },
     selectedItem: {
       get: function () {

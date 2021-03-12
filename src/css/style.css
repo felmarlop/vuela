@@ -176,6 +176,11 @@
     background-position: 50% 50%;
     background-size: 30px;
 }
+#app .image_dialog div.actual_size span {
+    background-image: url(../assets/icon_white_originalsize.svg);
+    background-position: 50% 50%;
+    background-size: 30px;
+}
 #app .image_dialog .buttons_img div.group_ico .value {
     position: absolute;
     top: -12px;
