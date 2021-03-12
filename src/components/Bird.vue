@@ -227,6 +227,7 @@ function updateRegionElements(region, cpnt) {
       if (res < textLimit) res = textLimit
       return res
     })
+    .style('display', 'block')
     .style('opacity', function () {
       return rgData && rgData[4] ? 1 : 0
     })
@@ -249,10 +250,16 @@ function updateRegionElements(region, cpnt) {
       return txt.getComputedTextLength() + 2 * padding
     })
     .attr('height', height)
+    .style('display', function () {
+      return cpnt.showLabels ? 'block' : 'none'
+    })
     .transition()
     .style('opacity', function () {
       return rgData && rgData[4] ? 1 : 0
     })
+  d3.select(txt).style('display', function () {
+    return cpnt.showLabels ? 'block' : 'none'
+  })
 
   d3.select(imgWrapper.querySelectorAll('.delete_region_wrapper[index="' + idx + '"]')[0])
     .attr('x', function () {
@@ -354,7 +361,7 @@ function zoom(cpnt, imgWrapper) {
       d3.select(imgWrapper.parentElement).style('cursor', 'default')
       d3.select('rect.overlay').style('cursor', 'crosshair')
       if (initPoint) {
-        cpnt.disableEditingMode()
+        cpnt.$emit('set-editing', false)
         cpnt.addNewRegion()
       }
       if (ev.sourceEvent) {
@@ -391,6 +398,10 @@ export default {
       type: String,
       default: ''
     },
+    showLabels: {
+      type: Boolean,
+      default: false
+    },
     editingMode: {
       type: Boolean,
       default: false
@@ -426,9 +437,16 @@ export default {
         d3.zoomIdentity.translate(this.transform['x'], this.transform['y']).scale(val)
       )
     },
+    showLabels: function (val) {
+      if (val) {
+        this.displayLabels()
+      } else {
+        this.hideLabels()
+      }
+    },
     editingMode: function (val) {
       if (val) {
-        this.enableEditingMode()
+        this.enableEditingMode(true)
       } else {
         this.disableEditingMode()
       }
@@ -520,6 +538,7 @@ export default {
         .on('mouseout.overlay', function () {
           d3.selectAll('.cross_line').style('display', 'none')
         })
+      if (cpnt.editingMode) this.enableEditingMode()
     },
     setRegions: function (data, animation) {
       let cpnt = this,
@@ -682,7 +701,13 @@ export default {
       let imgWrapper = this.img.parentElement
       d3.selectAll(imgWrapper.querySelectorAll('[index="' + idx + '"]')).remove()
     },
-    enableEditingMode: function () {
+    displayLabels: function () {
+      d3.selectAll('.region_label,.region_label_background').transition().style('display', 'block')
+    },
+    hideLabels: function () {
+      d3.selectAll('.region_label,.region_label_background').transition().style('display', 'none')
+    },
+    enableEditingMode: function (update) {
       let cpnt = this,
         _g = d3.select('#g_'),
         idx
@@ -724,21 +749,19 @@ export default {
           })
           .append('xhtml:i')
           .attr('class', 'delete_region')
-        updateRegionElements(d3.select(this), cpnt)
+        if (update) updateRegionElements(d3.select(this), cpnt)
       })
       _g.selectAll('rect.resize').call(
         d3.drag().on('drag', function (event) {
           resized(event, this, cpnt)
         })
       )
-      this.$emit('set-editing', true)
     },
     disableEditingMode: function () {
       let _g = d3.select('#g_')
       _g.select('rect.overlay').moveToFront()
       _g.selectAll('.region_label_background,.region_label').moveToFront()
       _g.selectAll('rect.resize,.delete_region_wrapper').remove()
-      this.$emit('set-editing', false)
     },
     getColorFn: function (labels) {
       return d3.scaleOrdinal().range(CATEGORY_COLORS).domain(labels)

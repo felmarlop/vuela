@@ -28,6 +28,7 @@
             :zoom="zoom"
             :labels="labels"
             :selected-label="selectedLabel"
+            :show-labels="showLabels"
             :editing-mode="editingMode"
             @update-labels="$emit('update-labels', $event)"
             @image-loaded="imgLoaded = true"
@@ -84,6 +85,13 @@
             class="pr-10"
             @change="addNewLabel($event)"
           ></v-text-field>
+          <v-switch
+            v-model="showLabels"
+            flat
+            color="secondary"
+            :label="showLabels ? 'Hide region labels' : 'Show region labels'"
+          >
+          </v-switch>
           <v-switch
             v-model="editingMode"
             flat
@@ -143,6 +151,7 @@ export default {
       contrast: DEFAULT_LUMINOSITY,
       zoom: DEFAULT_ZOOM,
       selectedLabel: 'test_label',
+      showLabels: true,
       editingMode: false,
       imgLoaded: false
     }

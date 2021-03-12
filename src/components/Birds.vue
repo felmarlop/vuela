@@ -122,7 +122,6 @@ export default {
     closeModal: function () {
       this.dialog = false
       this.$refs.idialog.resetImage()
-      this.$refs.idialog.editingMode = false
       this.$refs.idialog.$refs.birdComponent.resetRegions()
     }
   }
