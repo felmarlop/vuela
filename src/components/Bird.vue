@@ -252,14 +252,17 @@ function updateRegionElements(region, cpnt) {
     })
     .attr('height', height)
     .style('display', function () {
-      return cpnt.showLabels ? 'block' : 'none'
+      return cpnt.showLabels && cpnt.showRegions ? 'block' : 'none'
     })
     .transition()
     .style('opacity', function () {
       return rgData && rgData[4] ? 1 : 0
     })
   d3.select(txt).style('display', function () {
-    return cpnt.showLabels ? 'block' : 'none'
+    return cpnt.showLabels && cpnt.showRegions ? 'block' : 'none'
+  })
+  region.style('display', function () {
+    return cpnt.showRegions ? 'block' : 'none'
   })
 
   d3.select(imgWrapper.querySelectorAll('.delete_region_wrapper[index="' + idx + '"]')[0])
@@ -273,6 +276,9 @@ function updateRegionElements(region, cpnt) {
     })
     .attr('width', deleteSize)
     .attr('height', deleteSize)
+    .style('display', function () {
+      return cpnt.showRegions ? 'block' : 'none'
+    })
 
   d3.select(imgWrapper.querySelectorAll('rect.top_left[index="' + idx + '"]')[0])
     .attr('x', function () {
@@ -310,6 +316,9 @@ function updateRegionElements(region, cpnt) {
     })
     .attr('width', resizesz)
     .attr('height', resizesz)
+  d3.selectAll(imgWrapper.querySelectorAll('rect.resize[index="' + idx + '"]')).style('display', function () {
+    return cpnt.showRegions ? 'block' : 'none'
+  })
 
   // Sort elements
   if (cpnt.editingMode) {
@@ -363,6 +372,7 @@ function zoom(cpnt, imgWrapper) {
       d3.select('rect.overlay').style('cursor', 'crosshair')
       if (initPoint) {
         cpnt.$emit('set-editing', false)
+        cpnt.$emit('set-show-regions', true)
         cpnt.addNewRegion()
       }
       if (ev.sourceEvent) {
@@ -400,6 +410,10 @@ export default {
       default: ''
     },
     showLabels: {
+      type: Boolean,
+      default: false
+    },
+    showRegions: {
       type: Boolean,
       default: false
     },
@@ -451,6 +465,13 @@ export default {
         this.displayLabels()
       } else {
         this.hideLabels()
+      }
+    },
+    showRegions: function (val) {
+      if (val) {
+        this.displayAllRegions()
+      } else {
+        this.hideAllRegions()
       }
     },
     editingMode: function (val) {
@@ -597,6 +618,7 @@ export default {
         .attr('y', function (d) {
           return d[1] + d[3] / 2
         })
+        .style('display', cpnt.showRegions ? 'block' : 'none')
         .call(
           d3.drag().on('drag', function (event) {
             dragged(event, d3.select(this), cpnt)
@@ -711,10 +733,26 @@ export default {
       d3.selectAll(imgWrapper.querySelectorAll('[index="' + idx + '"]')).remove()
     },
     displayLabels: function () {
-      d3.selectAll('.region_label,.region_label_background').transition().style('display', 'block')
+      if (this.showRegions) {
+        d3.selectAll('.region_label,.region_label_background').style('display', 'block')
+      }
     },
     hideLabels: function () {
-      d3.selectAll('.region_label,.region_label_background').transition().style('display', 'none')
+      d3.selectAll('.region_label,.region_label_background').style('display', 'none')
+    },
+    displayAllRegions: function () {
+      d3.selectAll('rect.region').style('display', 'block')
+      if (this.showLabels) {
+        d3.selectAll('text.region_label,rect.region_label_background').style('display', 'block')
+      }
+      if (this.editingMode) {
+        d3.selectAll('rect.resize,.delete_region_wrapper').style('display', 'block')
+      }
+    },
+    hideAllRegions: function () {
+      d3.selectAll(
+        'text.region_label,rect.region,rect.resize,rect.region_label_background,.delete_region_wrapper'
+      ).style('display', 'none')
     },
     enableEditingMode: function (update) {
       let cpnt = this,

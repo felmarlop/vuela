@@ -29,11 +29,13 @@
             :labels="labels"
             :selected-label="selectedLabel"
             :show-labels="showLabels"
+            :show-regions="showRegions"
             :editing-mode="editingMode"
             @update-labels="$emit('update-labels', $event)"
             @image-loaded="imgLoaded = true"
             @image-loading="imgLoaded = false"
             @set-zoom="setZoom"
+            @set-show-regions="setShowRegions"
             @set-editing="setEditing"
             v-if="bird"
           />
@@ -106,6 +108,13 @@
           >
           </v-switch>
           <v-switch
+            v-model="showRegions"
+            flat
+            color="secondary"
+            :label="showRegions ? 'Hide all regions' : 'Show all regions'"
+          >
+          </v-switch>
+          <v-switch
             v-model="editingMode"
             flat
             color="secondary"
@@ -165,6 +174,7 @@ export default {
       zoom: DEFAULT_ZOOM,
       selectedLabel: 'test_label',
       showLabels: true,
+      showRegions: true,
       editingMode: false,
       imgLoaded: false
     }
@@ -223,6 +233,9 @@ export default {
     decreaseContrast: function () {
       this.contrast -= LUMINOSITY_STEP
       if (this.contrast < LUMINOSITY_MIN) this.contrast = LUMINOSITY_MIN
+    },
+    setShowRegions: function (val) {
+      this.showRegions = val
     },
     setEditing: function (val) {
       this.editingMode = val
