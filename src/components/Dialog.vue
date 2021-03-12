@@ -77,7 +77,13 @@
           </div>
         </v-col>
         <v-col :cols="2" class="pa-md-4">
-          <v-text-field v-model="selectedLabel" placeholder="Type your label" outlined class="pr-10"></v-text-field>
+          <v-text-field
+            v-model="selectedLabel"
+            placeholder="Type your label"
+            outlined
+            class="pr-10"
+            @change="addNewLabel($event)"
+          ></v-text-field>
           <v-switch
             v-model="editingMode"
             flat
@@ -157,6 +163,13 @@ export default {
     }
   },
   methods: {
+    addNewLabel: function (newLabel) {
+      var labelSet = this.labels.slice()
+      if (labelSet.indexOf(newLabel) == -1) {
+        labelSet.push(newLabel)
+        this.$emit('update-labels', labelSet)
+      }
+    },
     increaseZoom: function () {
       this.zoom += ZOOM_STEP
       if (this.zoom > ZOOM_MAX) this.zoom = ZOOM_MAX
