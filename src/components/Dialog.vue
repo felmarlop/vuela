@@ -27,11 +27,13 @@
             :styles="imgStyle"
             :zoom="zoom"
             :labels="labels"
+            :hidden-labels="hiddenLabels"
             :selected-label="selectedLabel"
             :show-labels="showLabels"
             :show-regions="showRegions"
             :editing-mode="editingMode"
             @update-labels="$emit('update-labels', $event)"
+            @update-hidden-labels="updateHiddenLabels"
             @image-loaded="imgLoaded = true"
             @image-loading="imgLoaded = false"
             @set-zoom="setZoom"
@@ -113,6 +115,7 @@
             class="d-block"
             color="secondary"
             :label="showRegions ? 'Hide all regions' : 'Show all regions'"
+            @change="setShowRegions($event)"
           >
           </v-switch>
           <v-switch
@@ -132,9 +135,13 @@
                 <v-list-item-content class="d-inline-block">
                   <v-list-item-title v-text="item"></v-list-item-title>
                 </v-list-item-content>
-                <v-list-item-action class="float-right mt-3" @click="$refs.birdComponent.removeRegionByLabel(item)">
-                  <v-icon small>mdi-close</v-icon>
-                </v-list-item-action>
+                <v-hover v-slot="{ hover }">
+                  <v-list-item-action class="float-right mt-3" @click.stop="clickListIcon(item)">
+                    <v-icon small :color="hover ? (showRegions ? 'red' : 'green') : ''">
+                      {{ showRegions ? 'mdi-close' : hiddenLabels.indexOf(item) >= 0 ? 'mdi-eye-off' : 'mdi-eye' }}
+                    </v-icon>
+                  </v-list-item-action>
+                </v-hover>
               </v-list-item>
             </v-list-item-group>
           </v-list>
@@ -146,6 +153,7 @@
 
 <script>
 import Bird from './Bird.vue'
+import _ from 'lodash'
 
 const DEFAULT_LUMINOSITY = 100
 const DEFAULT_ZOOM = 1
@@ -177,6 +185,7 @@ export default {
       contrast: DEFAULT_LUMINOSITY,
       zoom: DEFAULT_ZOOM,
       selectedLabel: 'test_label',
+      hiddenLabels: [],
       showLabels: true,
       showRegions: true,
       editingMode: false,
@@ -212,6 +221,19 @@ export default {
         this.$emit('update-labels', labelSet)
       }
     },
+    clickListIcon: function (lb) {
+      if (this.showRegions) {
+        this.$refs.birdComponent.removeRegionByLabel(lb)
+      } else if (this.hiddenLabels.indexOf(lb) >= 0) {
+        this.hiddenLabels.splice(this.hiddenLabels.indexOf(lb), 1)
+        this.selectedLabel = lb
+      } else {
+        this.hiddenLabels.push(lb)
+      }
+    },
+    updateHiddenLabels: function (lbs) {
+      if (lbs) this.hiddenLabels = lbs
+    },
     increaseZoom: function () {
       this.zoom += ZOOM_STEP
       if (this.zoom > ZOOM_MAX) this.zoom = ZOOM_MAX
@@ -239,6 +261,7 @@ export default {
       if (this.contrast < LUMINOSITY_MIN) this.contrast = LUMINOSITY_MIN
     },
     setShowRegions: function (val) {
+      this.hiddenLabels = val ? [] : _.cloneDeep(this.labels)
       this.showRegions = val
     },
     setEditing: function (val) {

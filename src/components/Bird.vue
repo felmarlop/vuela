@@ -12,6 +12,7 @@
 
 <script>
 import * as d3 from 'd3'
+import _ from 'lodash'
 
 d3.selection.prototype.moveToFront = function () {
   return this.each(function () {
@@ -252,17 +253,25 @@ function updateRegionElements(region, cpnt) {
     })
     .attr('height', height)
     .style('display', function () {
-      return cpnt.showLabels && cpnt.showRegions ? 'block' : 'none'
+      let show = cpnt.showLabels
+      if (!cpnt.showRegions) {
+        show = show && cpnt.hiddenLabels.indexOf(rgData[4]) == -1
+      }
+      return show ? 'block' : 'none'
     })
     .transition()
     .style('opacity', function () {
       return rgData && rgData[4] ? 1 : 0
     })
   d3.select(txt).style('display', function () {
-    return cpnt.showLabels && cpnt.showRegions ? 'block' : 'none'
+    let show = cpnt.showLabels
+    if (!cpnt.showRegions) {
+      show = show && cpnt.hiddenLabels.indexOf(rgData[4]) == -1
+    }
+    return show ? 'block' : 'none'
   })
   region.style('display', function () {
-    return cpnt.showRegions ? 'block' : 'none'
+    return cpnt.hiddenLabels.indexOf(rgData[4]) == -1 ? 'block' : 'none'
   })
 
   d3.select(imgWrapper.querySelectorAll('.delete_region_wrapper[index="' + idx + '"]')[0])
@@ -277,7 +286,7 @@ function updateRegionElements(region, cpnt) {
     .attr('width', deleteSize)
     .attr('height', deleteSize)
     .style('display', function () {
-      return cpnt.showRegions ? 'block' : 'none'
+      return cpnt.hiddenLabels.indexOf(rgData[4]) == -1 ? 'block' : 'none'
     })
 
   d3.select(imgWrapper.querySelectorAll('rect.top_left[index="' + idx + '"]')[0])
@@ -317,7 +326,7 @@ function updateRegionElements(region, cpnt) {
     .attr('width', resizesz)
     .attr('height', resizesz)
   d3.selectAll(imgWrapper.querySelectorAll('rect.resize[index="' + idx + '"]')).style('display', function () {
-    return cpnt.showRegions ? 'block' : 'none'
+    return cpnt.hiddenLabels.indexOf(rgData[4]) == -1 ? 'block' : 'none'
   })
 
   // Sort elements
@@ -372,7 +381,16 @@ function zoom(cpnt, imgWrapper) {
       d3.select('rect.overlay').style('cursor', 'crosshair')
       if (initPoint) {
         cpnt.$emit('set-editing', false)
-        cpnt.$emit('set-show-regions', true)
+        if (cpnt.hiddenLabels.length) {
+          let hlabels = _.cloneDeep(cpnt.hiddenLabels),
+            idx = hlabels.indexOf(cpnt.selectedLabel)
+          if (idx >= 0) {
+            hlabels.splice(idx, 1)
+            cpnt.$emit('update-hidden-labels', hlabels)
+          }
+        } else {
+          cpnt.$emit('set-show-regions', true)
+        }
         cpnt.addNewRegion()
       }
       if (ev.sourceEvent) {
@@ -400,6 +418,12 @@ export default {
       default: DEFAULT_ZOOM
     },
     labels: {
+      type: Array,
+      default: function () {
+        return []
+      }
+    },
+    hiddenLabels: {
       type: Array,
       default: function () {
         return []
@@ -459,6 +483,14 @@ export default {
         zoom(this, imgWrapper).transform,
         d3.zoomIdentity.translate(this.transform['x'], this.transform['y']).scale(val)
       )
+    },
+    hiddenLabels: function () {
+      let cpnt = this
+      if (!cpnt.showRegions) {
+        d3.selectAll('rect.region').each(function () {
+          updateRegionElements(d3.select(this), cpnt)
+        })
+      }
     },
     showLabels: function (val) {
       if (val) {
@@ -621,7 +653,9 @@ export default {
         .attr('y', function (d) {
           return d[1] + d[3] / 2
         })
-        .style('display', cpnt.showRegions ? 'block' : 'none')
+        .style('display', function (d) {
+          return cpnt.hiddenLabels.indexOf(d[4]) == -1 ? 'block' : 'none'
+        })
         .call(
           d3.drag().on('drag', function (event) {
             dragged(event, d3.select(this), cpnt)
@@ -753,9 +787,10 @@ export default {
       }
     },
     displayLabels: function () {
-      if (this.showRegions) {
-        d3.selectAll('.region_label,.region_label_background').style('display', 'block')
-      }
+      let cpnt = this
+      d3.selectAll('.region_label,.region_label_background').style('display', function (d) {
+        return cpnt.showRegions || cpnt.hiddenLabels.indexOf(d[4]) == -1 ? 'block' : 'none'
+      })
     },
     hideLabels: function () {
       d3.selectAll('.region_label,.region_label_background').style('display', 'none')
