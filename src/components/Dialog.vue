@@ -129,9 +129,12 @@
           <v-list rounded class="labels overflow-y-auto">
             <v-list-item-group v-model="selectedItem" color="secondary">
               <v-list-item :key="'label_' + item" class="d-inline-block" v-for="item in labels">
-                <v-list-item-content>
+                <v-list-item-content class="d-inline-block">
                   <v-list-item-title v-text="item"></v-list-item-title>
                 </v-list-item-content>
+                <v-list-item-action class="float-right mt-3" @click="$refs.birdComponent.removeRegionByLabel(item)">
+                  <v-icon small>mdi-close</v-icon>
+                </v-list-item-action>
               </v-list-item>
             </v-list-item-group>
           </v-list>

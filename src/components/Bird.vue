@@ -1,5 +1,5 @@
 <template>
-  <div class="image_wrapper">
+  <div v-click-outside="onClickOutside" class="image_wrapper">
     <div class="zoom_wrapper">
       <transition name="image-fade" @afterEnter="init">
         <img :src="birdUrl" :style="styles" @load="loaded" @error="error" @click="openModal" v-show="isLoaded" />
@@ -600,6 +600,9 @@ export default {
         .attr('index', function (_, i) {
           return i
         })
+        .attr('data-label', function (d) {
+          return d[4] || cpnt.selectedLabel
+        })
         .classed('region', true)
         .classed('adding', function (d) {
           return !d[4]
@@ -719,7 +722,7 @@ export default {
           parseInt(addingRect.attr('y')),
           parseInt(addingRect.attr('width')),
           parseInt(addingRect.attr('height')),
-          this.selectedLabel
+          addingRect.attr('data-label') || this.selectedLabel
         ]
 
       initPoint = null
@@ -728,9 +731,26 @@ export default {
       addingBg.data([newRegion]).classed('adding', false)
       updateRegionElements(addingRect, this)
     },
+    onClickOutside: function () {
+      if (this.raw && !d3.select('rect.region.adding').empty()) {
+        this.finishRegion()
+      }
+    },
     removeRegionByIndex(idx) {
       let imgWrapper = this.img.parentElement
       d3.selectAll(imgWrapper.querySelectorAll('[index="' + idx + '"]')).remove()
+    },
+    removeRegionByLabel(lb) {
+      let imgWrapper = this.img.parentElement,
+        indexesToRemove = [],
+        ir = 0
+      d3.selectAll('rect.region').each(function (d) {
+        if (d.length == 5 && d[4] == lb) indexesToRemove.push(d3.select(this).attr('index'))
+      })
+      while (ir < indexesToRemove.length) {
+        d3.selectAll(imgWrapper.querySelectorAll('[index="' + indexesToRemove[ir] + '"]')).remove()
+        ir++
+      }
     },
     displayLabels: function () {
       if (this.showRegions) {
