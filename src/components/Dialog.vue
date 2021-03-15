@@ -97,26 +97,27 @@
             v-model="selectedLabel"
             placeholder="Type your label"
             outlined
-            class="pr-10"
+            class="float-left"
             @change="addNewLabel($event)"
           ></v-text-field>
+          <v-btn class="mt-md-3" icon outlined @click="selectedLabel = ''"><v-icon>mdi-close</v-icon></v-btn>
           <v-switch
             v-model="showLabels"
-            flat
+            class="d-block"
             color="secondary"
             :label="showLabels ? 'Hide region labels' : 'Show region labels'"
           >
           </v-switch>
           <v-switch
             v-model="showRegions"
-            flat
+            class="d-block"
             color="secondary"
             :label="showRegions ? 'Hide all regions' : 'Show all regions'"
           >
           </v-switch>
           <v-switch
             v-model="editingMode"
-            flat
+            class="d-block"
             color="secondary"
             :label="editingMode ? 'Disable editing mode' : 'Enable editing mode'"
           >
