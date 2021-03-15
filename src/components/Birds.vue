@@ -119,12 +119,14 @@ export default {
       if (bird) this.selectedBird = bird
       clearInterval(shuffleInterval)
       this.dialog = true
+      if (this.$refs.idialog.$refs.birdComponent) {
+        this.$refs.idialog.resetImage()
+        this.$refs.idialog.$refs.birdComponent.resetRegions()
+      }
     },
     closeModal: function () {
       this.dialog = false
       this.resetInterval()
-      this.$refs.idialog.resetImage()
-      this.$refs.idialog.$refs.birdComponent.resetRegions()
     }
   }
 }
