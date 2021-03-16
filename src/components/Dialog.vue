@@ -45,53 +45,52 @@
           <div class="buttons_img" v-if="imgLoaded">
             <div class="group_ico">
               <span class="zoom_value value">Ratio: {{ zoom }}</span>
-              <div
-                id="zoom_image"
-                class="zoom_image actual_size ico"
+              <v-btn
+                color="white"
+                class="ico"
                 :class="{ active: actualSizeActive }"
+                icon
                 @click="$refs.birdComponent.setActualSize()"
               >
-                <span></span>
-              </div>
-              <div
-                id="zoom_image"
-                class="zoom_image fit_image ico"
+                <v-icon>mdi-actual-size</v-icon>
+              </v-btn>
+              <v-btn
+                color="white"
+                class="ico"
                 :class="{ active: resetZoomActive }"
+                icon
                 @click="$refs.birdComponent.resetZoom()"
               >
-                <span></span>
-              </div>
-              <div id="zoom_image" class="zoom_image zoom_out_image ico" @click="decreaseZoom()">
-                <span></span>
-              </div>
-              <span class="divider"></span>
-              <div id="zoom_image" class="zoom_image zoom_in_image ico" @click="increaseZoom()">
-                <span></span>
-              </div>
+                <v-icon>mdi-reset-zoom</v-icon>
+              </v-btn>
+              <v-btn color="white" class="ico" icon @click="decreaseZoom()">
+                <v-icon>mdi-magnify-minus</v-icon>
+              </v-btn>
+              <v-btn color="white" class="ico" icon @click="increaseZoom()">
+                <v-icon>mdi-magnify-plus</v-icon>
+              </v-btn>
             </div>
             <div class="group_ico">
               <span class="brightness_value value">{{ brightness }}%</span>
-              <div id="brightness_image" class="decrease_br intensity ico" @click="decreaseBrightness()">
-                <span></span>
-              </div>
-              <span class="divider"></span>
-              <div id="brightness_image" class="increase_br intensity ico" @click="increaseBrightness()">
-                <span></span>
-              </div>
+              <v-btn color="white" class="ico" icon @click="decreaseBrightness()">
+                <v-icon>mdi-brightness-minus</v-icon>
+              </v-btn>
+              <v-btn color="white" class="ico" icon @click="increaseBrightness()">
+                <v-icon>mdi-brightness-plus</v-icon>
+              </v-btn>
             </div>
             <div class="group_ico">
               <span class="contrast_value value">{{ contrast }}%</span>
-              <div id="contrast_image" class="decrease_ct intensity ico" @click="decreaseContrast()">
-                <span></span>
-              </div>
-              <span class="divider"></span>
-              <div id="contrast_image" class="increase_ct intensity ico" @click="increaseContrast()">
-                <span></span>
-              </div>
+              <v-btn color="white" class="ico" icon @click="decreaseContrast()">
+                <v-icon>mdi-contrast-minus</v-icon>
+              </v-btn>
+              <v-btn color="white" class="ico" icon @click="increaseContrast()">
+                <v-icon>mdi-contrast-plus</v-icon>
+              </v-btn>
             </div>
-            <div id="reset_original" class="reset_original ico disabled" @click="resetImage()">
-              <span></span>
-            </div>
+            <v-btn color="white" class="ico" icon @click="resetImage()">
+              <v-icon>mdi-reload</v-icon>
+            </v-btn>
           </div>
         </v-col>
         <v-col :cols="mobileDevice ? 12 : 4" class="pa-md-4">
