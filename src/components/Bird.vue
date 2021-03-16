@@ -23,6 +23,7 @@ d3.selection.prototype.moveToFront = function () {
 const DEFAULT_ZOOM = 1
 const ZOOM_MAX = 8
 const ZOOM_MIN = 0.01
+const MAX_IMG_HEIGHT = 600
 const REGIONS_ALLOWED = 40
 const WRAPPER_DIMENSION = 720
 const CATEGORY_COLORS = [
@@ -94,8 +95,7 @@ let initPoint = null
 function dragged(event, rgD3, cpnt) {
   if (!cpnt.editingMode) return
 
-  let img = cpnt.img,
-    rgData = rgD3.data()[0],
+  let rgData = rgD3.data()[0],
     newX = parseFloat(event.x) - parseFloat(event.subject.x || event.x) + parseFloat(rgD3.attr('x')),
     newY = parseFloat(event.y) - parseFloat(event.subject.y || event.y) + parseFloat(rgD3.attr('y'))
   if (newX < 0) newX = 0
@@ -103,8 +103,8 @@ function dragged(event, rgD3, cpnt) {
 
   let rwidth = parseFloat(rgD3.attr('width')),
     rheight = parseFloat(rgD3.attr('height'))
-  if (newX + rwidth > img.width) newX = img.width - rwidth
-  if (newY + rheight > img.height) newY = img.height - rheight
+  if (newX + rwidth > cpnt.imgWidth) newX = cpnt.imgWidth - rwidth
+  if (newY + rheight > cpnt.imgHeight) newY = cpnt.imgHeight - rheight
 
   rgD3
     .attr('x', newX)
@@ -189,8 +189,8 @@ function resized(event, square, cpnt) {
     newH = minSize
     newY = parseFloat(rgD3.attr('y'))
   }
-  if (newX + newW > img.width) newW = img.width - newX
-  if (newY + newH > img.height) newH = img.height - newY
+  if (newX + newW > cpnt.imgWidth) newW = cpnt.imgWidth - newX
+  if (newY + newH > cpnt.imgHeight) newH = cpnt.imgHeight - newY
 
   // Update region data
   rgD3.attr('x', newX).attr('y', newY).attr('width', newW).attr('height', newH)
@@ -277,7 +277,7 @@ function updateRegionElements(region, cpnt) {
   d3.select(imgWrapper.querySelectorAll('.delete_region_wrapper[index="' + idx + '"]')[0])
     .attr('x', function () {
       closeX = parseFloat(rgData[0]) + parseFloat(rgData[2]) + closeMargin
-      if (closeX + deleteSize >= img.width) closeX = img.width - deleteSize
+      if (closeX + deleteSize >= cpnt.imgWidth) closeX = cpnt.imgWidth - deleteSize
       return closeX
     })
     .attr('y', function () {
@@ -402,6 +402,20 @@ function zoom(cpnt, imgWrapper) {
     })
 }
 
+function originScale(cpnt) {
+  return {
+    x: d3.scaleLinear().domain([0, cpnt.imgWidth]).range([0, cpnt.img.naturalWidth]).interpolate(d3.interpolateRound),
+    y: d3.scaleLinear().domain([0, cpnt.imgHeight]).range([0, cpnt.img.naturalHeight]).interpolate(d3.interpolateRound)
+  }
+}
+
+function containerScale(cpnt) {
+  return {
+    x: d3.scaleLinear().domain([0, cpnt.img.naturalWidth]).range([0, cpnt.imgWidth]),
+    y: d3.scaleLinear().domain([0, cpnt.img.naturalHeight]).range([0, cpnt.imgHeight])
+  }
+}
+
 export default {
   name: 'Bird',
   props: {
@@ -451,6 +465,8 @@ export default {
   data: function () {
     return {
       img: null,
+      imgWidth: 0,
+      imgHeight: 0,
       isLoaded: false,
       isError: false,
       transform: { k: DEFAULT_ZOOM, x: 0, y: 0 }
@@ -532,16 +548,22 @@ export default {
       cpnt.transform = { k: DEFAULT_ZOOM, x: 0, y: 0 }
       if (!el || !cpnt.expanded) return false
 
+      // Compute the image width and height
+      this.imgWidth = (el.naturalWidth * el.height) / el.naturalHeight
+      this.imgHeight = (el.naturalHeight * el.width) / el.naturalWidth
+      if (this.imgHeight > MAX_IMG_HEIGHT) this.imgHeight = MAX_IMG_HEIGHT
+
       // Image svg
+      d3.selectAll('svg').remove()
       let _g = d3
         .select(el.parentElement)
         .append('svg')
         .attr('id', 'svg_')
         .attr('class', 'overlay_wrapper')
-        .attr('width', el.width)
-        .attr('height', el.height)
+        .attr('width', this.imgWidth)
+        .attr('height', this.imgHeight)
         .style('top', el.offsetTop)
-        .style('left', el.offsetLeft)
+        .style('left', (el.width - this.imgWidth) / 2)
         .append('g')
         .attr('id', 'g_')
 
@@ -552,14 +574,14 @@ export default {
         .attr('x1', 0)
         .attr('y1', 0)
         .attr('x2', 0)
-        .attr('y2', el.height)
+        .attr('y2', this.imgHeight)
         .attr('stroke', '#FFFFFF')
         .attr('class', 'cross_line y')
         .style('display', 'none')
       _g.append('line')
         .attr('x1', 0)
         .attr('y1', 0)
-        .attr('x2', el.width)
+        .attr('x2', this.imgWidth)
         .attr('y2', 0)
         .attr('stroke', '#FFFFFF')
         .attr('class', 'cross_line x')
@@ -568,8 +590,8 @@ export default {
       // Image overlay
       _g.append('rect')
         .attr('class', 'overlay')
-        .attr('width', el.width)
-        .attr('height', el.height)
+        .attr('width', this.imgWidth)
+        .attr('height', this.imgHeight)
         .style('fill', 'none')
         .on('mousedown.overlay', function (ev) {
           if (d3.select('rect.region.adding').empty()) {
@@ -728,6 +750,38 @@ export default {
           return d3.select(this).classed('new') || !d[4] ? 0 : 1
         })
       lbBackgrounds.exit().remove()
+
+      // Init zoom when there are not regions
+      if (!validRegions.length) {
+        d3.select(imgWrapper.parentElement).call(zoom(cpnt, imgWrapper)).on('dblclick.zoom', null)
+      }
+    },
+    getRegions: function () {
+      var rgs = d3.selectAll('rect.region').data(),
+        originalRegions = [],
+        scl = originScale(this),
+        idx = 0
+      while (idx < rgs.length) {
+        originalRegions.push([
+          scl.x(rgs[idx][0]),
+          scl.y(rgs[idx][1]),
+          scl.x(rgs[idx][2]),
+          scl.y(rgs[idx][3]),
+          rgs[idx][4]
+        ])
+        idx++
+      }
+      return originalRegions
+    },
+    scaledRegions: function (rgs) {
+      var scl = containerScale(this),
+        scaledRgs = [],
+        idx = 0
+      while (idx < rgs.length) {
+        scaledRgs.push([scl.x(rgs[idx][0]), scl.y(rgs[idx][1]), scl.x(rgs[idx][2]), scl.y(rgs[idx][3]), rgs[idx][4]])
+        idx++
+      }
+      return scaledRgs
     },
     removeAllRegions: function () {
       d3.selectAll('.delete_region_wrapper,.resize').remove()
@@ -740,7 +794,7 @@ export default {
         y = initPoint[1]
 
       if (this.labelSet.indexOf(this.selectedLabel) == -1) this.labelSet.push(this.selectedLabel)
-      if (x > this.img.width || y > this.img.height) return false
+      if (x > this.imgWidth || y > this.imgHeight) return false
       if (d3.selectAll('rect.region').size() >= REGIONS_ALLOWED) return false
 
       let data = d3.selectAll('rect.region').data()

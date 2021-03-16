@@ -11,13 +11,13 @@
           <v-btn dark text @click="$emit('close-modal')">Close</v-btn>
         </v-toolbar-items>
       </v-toolbar>
-      <v-subheader>
+      <v-subheader :style="{ fontSize: mobileDevice ? '10px' : '14px' }">
         To draw your first region type a label, click the start point on the image, move and click the end point to
         finish.
       </v-subheader>
       <v-divider></v-divider>
       <v-row dense>
-        <v-col :cols="10">
+        <v-col :cols="mobileDevice ? 12 : 8">
           <bird
             ref="birdComponent"
             :key="bird.url"
@@ -94,12 +94,13 @@
             </div>
           </div>
         </v-col>
-        <v-col :cols="2" class="pa-md-4">
+        <v-col :cols="mobileDevice ? 12 : 4" class="pa-md-4">
           <v-text-field
             v-model="selectedLabel"
             placeholder="Type your label"
             outlined
             class="float-left"
+            :style="{ width: '80%' }"
             @change="addNewLabel($event)"
           ></v-text-field>
           <v-btn class="mt-md-3" icon outlined @click="selectedLabel = ''"><v-icon>mdi-close</v-icon></v-btn>
@@ -125,8 +126,8 @@
             :label="editingMode ? 'Disable editing mode' : 'Enable editing mode'"
           >
           </v-switch>
-          <v-btn elevation="2" class="d-inherit mb-md-5" @click="$refs.birdComponent.removeAllRegions()">
-            Remove all regions
+          <v-btn class="mb-md-5 d-block" icon outlined @click="$refs.birdComponent.removeAllRegions()">
+            <v-icon>mdi-delete</v-icon>
           </v-btn>
           <v-divider></v-divider>
           <v-list rounded class="labels overflow-y-auto">
@@ -160,6 +161,7 @@ const DEFAULT_ZOOM = 1
 const LUMINOSITY_STEP = 10
 const LUMINOSITY_MAX = 300
 const LUMINOSITY_MIN = 0
+const MOBILE_WIDTH = 700
 const ZOOM_STEP = 0.1
 const ZOOM_MAX = 8
 const ZOOM_MIN = 0.01
@@ -189,7 +191,8 @@ export default {
       showLabels: true,
       showRegions: true,
       editingMode: false,
-      imgLoaded: false
+      imgLoaded: false,
+      mobileDevice: false
     }
   },
   computed: {
@@ -212,6 +215,10 @@ export default {
         if (idx >= 0 && idx < this.labels.length) this.selectedLabel = this.labels[idx]
       }
     }
+  },
+  created: function () {
+    this.mobileDevice = window.innerWidth < MOBILE_WIDTH
+    this.selectedLabel = this.labels.length ? this.labels[this.labels.length - 1] : ''
   },
   methods: {
     addNewLabel: function (newLabel) {

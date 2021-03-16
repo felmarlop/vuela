@@ -34,62 +34,47 @@ export default {
         {
           url:
             'https://strato.dev.bigml.com/shared/source/6033c212520f907ec900000a/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: [[257, 28, 272, 216, 'goshawk']]
+          regions: []
         },
         {
           url:
             'https://strato.dev.bigml.com/shared/source/6033c212520f907ec900000d/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: [
-            [15, 187, 306, 220, 'golden'],
-            [356, 107, 329, 225, 'golden']
-          ]
+          regions: []
         },
         {
           url:
             'https://strato.dev.bigml.com/shared/source/6033c212520f907ec9000007/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: [[208, 133, 150, 251, 'snake eagle']]
+          regions: []
         },
         {
           url:
             'https://strato.dev.bigml.com/shared/source/6033ef65520f907ef3000004/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: [[195, 25, 434, 469, 'imperial']]
+          regions: []
         },
         {
           url:
             'https://strato.dev.bigml.com/shared/source/6033c213520f907ec9000010/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: [[298, 78, 98, 264, 'golden']]
+          regions: []
         },
         {
           url:
             'https://strato.dev.bigml.com/shared/source/603cd1ab520f907e81000098/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: [
-            [44, 112, 254, 223, 'golden'],
-            [387, 107, 237, 211, 'golden']
-          ]
+          regions: []
         },
         {
           url:
             'https://strato.dev.bigml.com/shared/source/603cd112520f907e5e00009b/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: [
-            [160, 70, 152, 291, 'vulture'],
-            [413, 110, 123, 270, 'vulture']
-          ]
+          regions: []
         },
         {
           url:
             'https://strato.dev.bigml.com/shared/source/603d01f0520f907e510000c3/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: [
-            [124, 64, 145, 220, 'bonelli'],
-            [499, 433, 108, 165, 'bonelli']
-          ]
+          regions: []
         },
         {
           url:
             'https://strato.dev.bigml.com/shared/source/603d01f0520f907e8100009b/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: [
-            [239, 103, 195, 319, 'imperial'],
-            [366, 74, 249, 280, 'imperial']
-          ]
+          regions: []
         }
       ],
       labels: ['goshawk', 'golden', 'snake eagle', 'imperial', 'vulture', 'bonelli'],
