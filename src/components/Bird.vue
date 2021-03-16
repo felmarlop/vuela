@@ -485,7 +485,6 @@ export default {
       return this.labels.slice()
     },
     birdUrl: function () {
-      this.$emit('image-loading')
       return this.raw ? this.bird.url.replace('image', 'image/raw') : this.bird.url
     }
   },
@@ -546,6 +545,7 @@ export default {
       let cpnt = this
       cpnt.img = el
       cpnt.transform = { k: DEFAULT_ZOOM, x: 0, y: 0 }
+      this.$emit('set-zoom', DEFAULT_ZOOM)
       if (!el || !cpnt.expanded) return false
 
       // Compute the image width and height

@@ -89,7 +89,7 @@
     cursor: nesw-resize;
 }
 #app .image_dialog .image_wrapper {
-    max-height: 740px;
+    min-height: 340px;
     padding: 20px 0 20px 0;
     overflow: hidden;
 }

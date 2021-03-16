@@ -1,13 +1,16 @@
 <template>
   <div class="birds_wrapper">
     <transition-group name="image-list" class="birds" appear>
-      <bird :key="'grid_' + b.url" :bird="b" @open-modal="openModal" v-for="b in birds" />
+      <bird :key="'grid_' + b.url" :bird="b" @open-modal="openModal(b, index)" v-for="(b, index) in birds" />
     </transition-group>
     <idialog
       ref="idialog"
       :dialog="dialog"
       :bird="selectedBird"
+      :bird-index="birdIndex"
+      :bird-length="birds.length"
       :labels="labels"
+      @update-bird="updateBird"
       @close-modal="closeModal"
       @update-labels="updateLabels"
     />
@@ -79,6 +82,7 @@ export default {
       ],
       labels: ['goshawk', 'golden', 'snake eagle', 'imperial', 'vulture', 'bonelli'],
       selectedBird: null,
+      birdIndex: 0,
       dialog: false
     }
   },
@@ -100,8 +104,18 @@ export default {
     updateLabels: function (val) {
       if (val) this.labels = val
     },
-    openModal: function (bird) {
-      if (bird) this.selectedBird = bird
+    updateBird: function (idx) {
+      this.selectedBird = this.birds[idx - 1]
+      this.birdIndex = idx - 1
+      if (this.$refs.idialog.$refs.birdComponent) {
+        this.$refs.idialog.$refs.birdComponent.resetZoom()
+      }
+    },
+    openModal: function (bird, idx) {
+      if (bird) {
+        this.selectedBird = bird
+        this.birdIndex = idx
+      }
       clearInterval(shuffleInterval)
       this.dialog = true
       if (this.$refs.idialog.$refs.birdComponent) {

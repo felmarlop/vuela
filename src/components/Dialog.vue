@@ -35,12 +35,13 @@
             @update-labels="$emit('update-labels', $event)"
             @update-hidden-labels="updateHiddenLabels"
             @image-loaded="imgLoaded = true"
-            @image-loading="imgLoaded = false"
             @set-zoom="setZoom"
             @set-show-regions="setShowRegions"
             @set-editing="setEditing"
             v-if="bird"
           />
+          <v-pagination v-model="imgPage" :length="birdLength" :total-visible="5" color="secondary" v-if="imgLoaded">
+          </v-pagination>
           <v-divider></v-divider>
           <div class="buttons_img" v-if="imgLoaded">
             <div class="group_ico">
@@ -173,6 +174,14 @@ export default {
       type: Object,
       default: null
     },
+    birdIndex: {
+      type: Number,
+      default: 0
+    },
+    birdLength: {
+      type: Number,
+      default: 0
+    },
     labels: {
       type: Array,
       default: function () {
@@ -205,6 +214,14 @@ export default {
     },
     resetZoomActive: function () {
       return this.zoom == DEFAULT_ZOOM
+    },
+    imgPage: {
+      get: function () {
+        return this.birdIndex + 1
+      },
+      set: function (val) {
+        this.$emit('update-bird', val)
+      }
     },
     selectedItem: {
       get: function () {
