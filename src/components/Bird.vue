@@ -600,15 +600,15 @@ export default {
         .attr('width', this.imgWidth)
         .attr('height', this.imgHeight)
         .style('fill', 'none')
-        .on('mousedown.overlay', function (ev) {
+        .on('mousedown.overlay', function (event) {
           if (d3.select('rect.region.adding').empty()) {
-            initPoint = d3.pointer(ev)
+            initPoint = [event.offsetX, event.offsetY]
           } else {
             cpnt.finishRegion()
           }
         })
         .on('mousemove.overlay', function (event) {
-          let pointer = d3.pointer(event)
+          let pointer = [event.offsetX, event.offsetY]
           d3.selectAll('.cross_line').style('display', 'block')
           d3.select('.cross_line.x').attr('y1', pointer[1]).attr('y2', pointer[1])
           d3.select('.cross_line.y').attr('x1', pointer[0]).attr('x2', pointer[0])
@@ -830,7 +830,7 @@ export default {
           parseInt(addingRect.attr('height')),
           addingRect.attr('data-label') || this.selectedLabel
         ]
-      
+
       initPoint = null
       if (!newRegion[2] || !newRegion[3]) {
         addingRect.remove()
