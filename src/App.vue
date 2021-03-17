@@ -2,7 +2,7 @@
   <v-app class="app">
     <div class="header">
       <img alt="Vue logo" src="./assets/logo.png" class="logo" />
-      <h2>{{ msg }}</h2>
+      <h2 class="mt-2">{{ msg }}</h2>
     </div>
     <Birds></Birds>
     <!-- <router-link to="/user/123456789">Go to user (test)</router-link>
@@ -15,6 +15,7 @@
 
 <script>
 import Birds from './components/Birds.vue'
+
 export default {
   name: 'App',
   components: {

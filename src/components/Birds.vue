@@ -1,5 +1,5 @@
 <template>
-  <div class="birds_wrapper">
+  <div class="birds_wrapper mt-6 mb-6">
     <transition-group name="image-list" class="birds" appear>
       <bird :key="'grid_' + b.url" :bird="b" @open-modal="openModal(b, index)" v-for="(b, index) in birds" />
     </transition-group>

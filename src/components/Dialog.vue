@@ -11,7 +11,7 @@
           <v-btn dark text @click="$emit('close-modal')">Close</v-btn>
         </v-toolbar-items>
       </v-toolbar>
-      <v-subheader :style="{ fontSize: mobileDevice ? '10px' : '14px' }">
+      <v-subheader :style="{ height: '70px' }">
         To draw your first region type a label, click the start point on the image, move and click the end point to
         finish.
       </v-subheader>
@@ -20,16 +20,14 @@
       </v-alert>
       <v-divider></v-divider>
       <v-row dense>
-        <v-col :cols="mobileDevice ? 12 : 8">
+        <v-col md="8">
           <bird
             ref="birdComponent"
             :key="bird.url"
             :bird="bird"
             :raw="true"
             :expanded="true"
-            :max-img-height="imgHeight"
             :img-style="imgStyle"
-            :wrapper-style="wrapperStyle"
             :zoom="zoom"
             :labels="labels"
             :hidden-labels="hiddenLabels"
@@ -102,7 +100,7 @@
             </v-btn>
           </div>
         </v-col>
-        <v-col :cols="mobileDevice ? 12 : 4" class="pa-md-4">
+        <v-col md="4" class="pa-md-4" v-if="imgLoaded">
           <v-text-field
             v-model="selectedLabel"
             placeholder="Type your label"
@@ -143,11 +141,11 @@
               <v-list-item
                 :key="'label_' + item"
                 :style="labelColor(item)"
-                class="d-inline-block"
+                class="d-inline-block mr-1"
                 v-for="item in labels"
               >
-                <v-list-item-content class="d-inline-block">
-                  <v-list-item-title v-text="item"></v-list-item-title>
+                <v-list-item-content class="d-inline-block label_wrapper">
+                  <v-list-item-title :style="labelStyle" v-text="item"></v-list-item-title>
                 </v-list-item-content>
                 <v-hover v-slot="{ hover }">
                   <v-list-item-action class="float-right mt-3" @click.stop="clickListIcon(item)">
@@ -174,7 +172,6 @@ const DEFAULT_ZOOM = 1
 const LUMINOSITY_STEP = 10
 const LUMINOSITY_MAX = 300
 const LUMINOSITY_MIN = 0
-const MOBILE_WIDTH = 700
 const ZOOM_STEP = 0.1
 const ZOOM_MAX = 8
 const ZOOM_MIN = 0.01
@@ -215,25 +212,17 @@ export default {
       showLabels: true,
       showRegions: true,
       editingMode: false,
-      imgLoaded: false,
-      mobileDevice: false
+      imgLoaded: false
     }
   },
   computed: {
-    imgHeight: function () {
-      return this.mobileDevice ? 350 : 600
-    },
     imgStyle: function () {
       return {
-        filter: 'brightness(' + this.brightness + '%) contrast(' + this.contrast + '%)',
-        maxHeight: this.mobileDevice ? '350px' : '600px'
+        filter: 'brightness(' + this.brightness + '%) contrast(' + this.contrast + '%)'
       }
     },
-    wrapperStyle: function () {
-      return {
-        height: this.mobileDevice ? '390px' : '640px',
-        lineHeight: this.mobileDevice ? '390px' : '640px'
-      }
+    labelStyle: function () {
+      return { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
     },
     actualSizeActive: function () {
       return this.zoom == Math.round(this.$refs.birdComponent.actualSize * 100) / 100
@@ -259,7 +248,6 @@ export default {
     }
   },
   created: function () {
-    this.mobileDevice = window.innerWidth < MOBILE_WIDTH
     this.selectedLabel = this.labels.length ? this.labels[this.labels.length - 1] : ''
   },
   methods: {
@@ -271,7 +259,7 @@ export default {
     },
     addNewLabel: function (newLabel) {
       var labelSet = this.labels.slice()
-      if (labelSet.indexOf(newLabel) == -1) {
+      if (newLabel && labelSet.indexOf(newLabel) == -1) {
         labelSet.push(newLabel)
         this.$emit('update-labels', labelSet)
       }

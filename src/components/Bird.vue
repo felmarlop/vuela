@@ -1,5 +1,5 @@
 <template>
-  <div v-click-outside="onClickOutside" class="image_wrapper" :style="wrapperStyle">
+  <div v-click-outside="onClickOutside" class="image_wrapper">
     <div class="zoom_wrapper">
       <transition name="image-fade" @afterEnter="init">
         <img :src="birdUrl" :style="imgStyle" @load="loaded" @error="error" @click="openModal" v-show="isLoaded" />
@@ -19,7 +19,6 @@ const DEFAULT_ZOOM = 1
 const ZOOM_MAX = 8
 const ZOOM_MIN = 0.01
 const REGIONS_ALLOWED = 40
-const WRAPPER_DIMENSION = 720
 
 let initPoint = null
 
@@ -355,15 +354,7 @@ export default {
       type: Object,
       default: null
     },
-    maxImgHeight: {
-      type: Number,
-      default: 0
-    },
     imgStyle: {
-      type: Object,
-      default: null
-    },
-    wrapperStyle: {
       type: Object,
       default: null
     },
@@ -415,7 +406,8 @@ export default {
   computed: {
     actualSize: function () {
       if (!this.isLoaded || !this.img) return null
-      let fitWidth = parseFloat((WRAPPER_DIMENSION / this.img.naturalHeight) * this.img.naturalWidth),
+      let maxImgHeight = parseInt(window.getComputedStyle(this.img).getPropertyValue('max-height')),
+        fitWidth = parseFloat((maxImgHeight / this.img.naturalHeight) * this.img.naturalWidth),
         k = this.img.naturalWidth / fitWidth
       if (k < ZOOM_MIN) k = ZOOM_MIN
       if (k > ZOOM_MAX) k = ZOOM_MAX
@@ -469,6 +461,22 @@ export default {
       }
     }
   },
+  mounted: function () {
+    // Listen for orientation changes
+    let cpnt = this,
+      w = window.innerWidth
+    window.addEventListener(
+      'resize',
+      function () {
+        if (window.innerWidth != w && cpnt.isLoaded) {
+          d3.selectAll('svg').remove()
+          cpnt.init(cpnt.img)
+        }
+        w = window.innerWidth
+      },
+      false
+    )
+  },
   methods: {
     openModal: function () {
       if (this.expanded) return false
@@ -489,9 +497,10 @@ export default {
       if (!el || !cpnt.expanded) return false
 
       // Compute the image width and height
+      let maxImgHeight = parseInt(window.getComputedStyle(el).getPropertyValue('max-height'))
       this.imgWidth = (el.naturalWidth * el.height) / el.naturalHeight
       this.imgHeight = (el.naturalHeight * el.width) / el.naturalWidth
-      if (this.imgHeight > this.maxImgHeight) this.imgHeight = this.maxImgHeight
+      if (this.imgHeight > maxImgHeight) this.imgHeight = maxImgHeight
 
       // Image svg
       d3.selectAll('svg').remove()
@@ -697,7 +706,7 @@ export default {
       }
     },
     getRegions: function () {
-      var rgs = d3.selectAll('rect.region').data(),
+      let rgs = d3.selectAll('rect.region').data(),
         originalRegions = [],
         scl = originScale(this),
         idx = 0
@@ -714,7 +723,7 @@ export default {
       return originalRegions
     },
     scaledRegions: function (rgs) {
-      var scl = containerScale(this),
+      let scl = containerScale(this),
         scaledRgs = [],
         idx = 0
       while (idx < rgs.length) {

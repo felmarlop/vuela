@@ -11,16 +11,7 @@
     right: 10px;
     display: inline-block;
 }
-#app .header h2 {
-    display: inline-block;
-}
-#app .birds_wrapper {
-    margin: 40px 0 40px 0;
-}
 #app .birds {
-    margin: 0 auto;
-    margin-bottom: 10px;
-    width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
 }
@@ -31,7 +22,7 @@
     border-radius: 5px;
     cursor: pointer;
     margin: 0 auto;
-    margin-bottom: 20px;
+    margin-bottom: 5%;
 }
 #app .birds .zoom_wrapper {
     display: inline;
@@ -188,7 +179,7 @@
     left: 72%;
 }
 #app .image_dialog .v-list.labels {
-    max-height: 300px;
+    max-height: 50%;
 }
 #app .birds .image_wrapper img {
     width: 100%;
@@ -226,4 +217,27 @@
 }
 .image-fade-enter, .image-fade-leave-to {
     opacity: 0;
+}
+#app .image_dialog img{
+    max-height: 350px;
+}
+#app .image_dialog .image_wrapper{
+    width: 100%;
+    height: 390px;
+    line-height: 390px;
+}
+#app .image_dialog .label_wrapper{
+    max-width: 150px;
+}
+@media (min-width:960px) { 
+    #app .image_dialog img{
+        max-height: 600px;
+    }
+    #app .image_dialog .image_wrapper{
+        height: 640px;
+        line-height: 640px;
+    }
+    #app .image_dialog .label_wrapper{
+        max-width: 300px;
+    }
 }
