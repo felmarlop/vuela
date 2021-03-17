@@ -42,6 +42,7 @@ module.exports = {
     'vue/prop-name-casing': 'error',
     'vue/order-in-components': 'error',
     'vue/custom-event-name-casing': ['error', { ignores: ['/^[a-z]+(?:-[a-z]+)*:[a-z]+(?:-[a-z]+)*$/u'] }],
+    "vue/no-v-html": "off",
     'vue/attributes-order': [
       'warn',
       {

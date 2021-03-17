@@ -1,8 +1,8 @@
 <template>
-  <div v-click-outside="onClickOutside" class="image_wrapper">
+  <div v-click-outside="onClickOutside" class="image_wrapper" :style="wrapperStyle">
     <div class="zoom_wrapper">
       <transition name="image-fade" @afterEnter="init">
-        <img :src="birdUrl" :style="styles" @load="loaded" @error="error" @click="openModal" v-show="isLoaded" />
+        <img :src="birdUrl" :style="imgStyle" @load="loaded" @error="error" @click="openModal" v-show="isLoaded" />
       </transition>
     </div>
     <div class="loading" v-if="isError">Error happened loading the image...</div>
@@ -23,7 +23,6 @@ d3.selection.prototype.moveToFront = function () {
 const DEFAULT_ZOOM = 1
 const ZOOM_MAX = 8
 const ZOOM_MIN = 0.01
-const MAX_IMG_HEIGHT = 600
 const REGIONS_ALLOWED = 40
 const WRAPPER_DIMENSION = 720
 const CATEGORY_COLORS = [
@@ -212,7 +211,7 @@ function updateRegionElements(region, cpnt) {
     padding = 5,
     radius = 3,
     margin = 5,
-    closeMargin = 2,
+    closeMargin = 4,
     textLimit = 13,
     rectLimit = 0,
     resizesz = 8,
@@ -423,7 +422,15 @@ export default {
       type: Object,
       default: null
     },
-    styles: {
+    maxImgHeight: {
+      type: Number,
+      default: 0
+    },
+    imgStyle: {
+      type: Object,
+      default: null
+    },
+    wrapperStyle: {
       type: Object,
       default: null
     },
@@ -551,7 +558,7 @@ export default {
       // Compute the image width and height
       this.imgWidth = (el.naturalWidth * el.height) / el.naturalHeight
       this.imgHeight = (el.naturalHeight * el.width) / el.naturalWidth
-      if (this.imgHeight > MAX_IMG_HEIGHT) this.imgHeight = MAX_IMG_HEIGHT
+      if (this.imgHeight > this.maxImgHeight) this.imgHeight = this.maxImgHeight
 
       // Image svg
       d3.selectAll('svg').remove()
@@ -788,14 +795,25 @@ export default {
       this.setRegions([])
     },
     addNewRegion: function () {
-      if (!d3.select('rect.region.adding').empty() || !initPoint || !this.selectedLabel) return false
+      if (!d3.select('rect.region.adding').empty() || !initPoint) return false
+      if (!this.selectedLabel) {
+        this.$emit('set-alert-message', '<strong>Type a label first</strong> to draw a region', 'info')
+        return false
+      }
 
       let x = initPoint[0],
         y = initPoint[1]
 
       if (this.labelSet.indexOf(this.selectedLabel) == -1) this.labelSet.push(this.selectedLabel)
       if (x > this.imgWidth || y > this.imgHeight) return false
-      if (d3.selectAll('rect.region').size() >= REGIONS_ALLOWED) return false
+      if (d3.selectAll('rect.region').size() >= REGIONS_ALLOWED) {
+        this.$emit(
+          'set-alert-message',
+          'Please, use the BigML API to add <strong>more than ' + REGIONS_ALLOWED + ' regions</strong>.',
+          'warning'
+        )
+        return false
+      }
 
       let data = d3.selectAll('rect.region').data()
       data.push([x, y, 0, 0, ''])
@@ -812,8 +830,16 @@ export default {
           parseInt(addingRect.attr('height')),
           addingRect.attr('data-label') || this.selectedLabel
         ]
-
+      
       initPoint = null
+      if (!newRegion[2] || !newRegion[3]) {
+        addingRect.remove()
+        addingText.remove()
+        addingBg.remove()
+        this.$emit('set-alert-message', 'The region has to have <strong>some width and height</strong>', 'info')
+        return false
+      }
+
       addingRect.data([newRegion]).classed('adding', false)
       addingText.data([newRegion]).classed('adding', false)
       addingBg.data([newRegion]).classed('adding', false)

@@ -15,6 +15,9 @@
         To draw your first region type a label, click the start point on the image, move and click the end point to
         finish.
       </v-subheader>
+      <v-alert v-model="alert" dismissible dense :type="alertMessageType" class="message mt-4">
+        <span v-html="alertMessage"></span>
+      </v-alert>
       <v-divider></v-divider>
       <v-row dense>
         <v-col :cols="mobileDevice ? 12 : 8">
@@ -24,7 +27,9 @@
             :bird="bird"
             :raw="true"
             :expanded="true"
-            :styles="imgStyle"
+            :max-img-height="imgHeight"
+            :img-style="imgStyle"
+            :wrapper-style="wrapperStyle"
             :zoom="zoom"
             :labels="labels"
             :hidden-labels="hiddenLabels"
@@ -35,6 +40,7 @@
             @update-labels="$emit('update-labels', $event)"
             @update-hidden-labels="updateHiddenLabels"
             @image-loaded="imgLoaded = true"
+            @set-alert-message="setAlertMessage"
             @set-zoom="setZoom"
             @set-show-regions="setShowRegions"
             @set-editing="setEditing"
@@ -49,6 +55,7 @@
               <v-btn
                 color="white"
                 class="ico"
+                small
                 :class="{ active: actualSizeActive }"
                 icon
                 @click="$refs.birdComponent.setActualSize()"
@@ -58,38 +65,39 @@
               <v-btn
                 color="white"
                 class="ico"
+                small
                 :class="{ active: resetZoomActive }"
                 icon
                 @click="$refs.birdComponent.resetZoom()"
               >
                 <v-icon>mdi-reset-zoom</v-icon>
               </v-btn>
-              <v-btn color="white" class="ico" icon @click="decreaseZoom()">
+              <v-btn color="white" class="ico" small icon @click="decreaseZoom()">
                 <v-icon>mdi-magnify-minus</v-icon>
               </v-btn>
-              <v-btn color="white" class="ico" icon @click="increaseZoom()">
+              <v-btn color="white" class="ico" small icon @click="increaseZoom()">
                 <v-icon>mdi-magnify-plus</v-icon>
               </v-btn>
             </div>
             <div class="group_ico">
               <span class="brightness_value value">{{ brightness }}%</span>
-              <v-btn color="white" class="ico" icon @click="decreaseBrightness()">
+              <v-btn color="white" class="ico" small icon @click="decreaseBrightness()">
                 <v-icon>mdi-brightness-minus</v-icon>
               </v-btn>
-              <v-btn color="white" class="ico" icon @click="increaseBrightness()">
+              <v-btn color="white" class="ico" small icon @click="increaseBrightness()">
                 <v-icon>mdi-brightness-plus</v-icon>
               </v-btn>
             </div>
             <div class="group_ico">
               <span class="contrast_value value">{{ contrast }}%</span>
-              <v-btn color="white" class="ico" icon @click="decreaseContrast()">
+              <v-btn color="white" class="ico" small icon @click="decreaseContrast()">
                 <v-icon>mdi-contrast-minus</v-icon>
               </v-btn>
-              <v-btn color="white" class="ico" icon @click="increaseContrast()">
+              <v-btn color="white" class="ico" small icon @click="increaseContrast()">
                 <v-icon>mdi-contrast-plus</v-icon>
               </v-btn>
             </div>
-            <v-btn color="white" class="ico" icon @click="resetImage()">
+            <v-btn color="white" class="ico" small icon @click="resetImage()">
               <v-icon>mdi-reload</v-icon>
             </v-btn>
           </div>
@@ -99,21 +107,21 @@
             v-model="selectedLabel"
             placeholder="Type your label"
             outlined
-            class="float-left"
+            class="float-left ml-4"
             :style="{ width: '80%' }"
             @change="addNewLabel($event)"
           ></v-text-field>
-          <v-btn class="mt-md-3" icon outlined @click="selectedLabel = ''"><v-icon>mdi-close</v-icon></v-btn>
+          <v-btn class="mt-2" icon outlined @click="selectedLabel = ''"><v-icon>mdi-close</v-icon></v-btn>
           <v-switch
             v-model="showLabels"
-            class="d-block"
+            class="d-block ml-4"
             color="secondary"
             :label="showLabels ? 'Hide region labels' : 'Show region labels'"
           >
           </v-switch>
           <v-switch
             v-model="showRegions"
-            class="d-block"
+            class="d-block ml-4"
             color="secondary"
             :label="showRegions ? 'Hide all regions' : 'Show all regions'"
             @change="setShowRegions($event)"
@@ -121,12 +129,12 @@
           </v-switch>
           <v-switch
             v-model="editingMode"
-            class="d-block"
+            class="d-block ml-4"
             color="secondary"
             :label="editingMode ? 'Disable editing mode' : 'Enable editing mode'"
           >
           </v-switch>
-          <v-btn class="mb-md-5 d-block" icon outlined @click="$refs.birdComponent.removeAllRegions()">
+          <v-btn class="ma-auto mb-4 d-block" icon outlined @click="$refs.birdComponent.removeAllRegions()">
             <v-icon>mdi-delete</v-icon>
           </v-btn>
           <v-divider></v-divider>
@@ -194,6 +202,9 @@ export default {
       brightness: DEFAULT_LUMINOSITY,
       contrast: DEFAULT_LUMINOSITY,
       zoom: DEFAULT_ZOOM,
+      alert: false,
+      alertMessage: '',
+      alertMessageType: 'success',
       selectedLabel: 'test_label',
       hiddenLabels: [],
       showLabels: true,
@@ -204,9 +215,19 @@ export default {
     }
   },
   computed: {
+    imgHeight: function () {
+      return this.mobileDevice ? 350 : 600
+    },
     imgStyle: function () {
       return {
-        filter: 'brightness(' + this.brightness + '%) contrast(' + this.contrast + '%)'
+        filter: 'brightness(' + this.brightness + '%) contrast(' + this.contrast + '%)',
+        maxHeight: this.mobileDevice ? '350px' : '600px'
+      }
+    },
+    wrapperStyle: function () {
+      return {
+        height: this.mobileDevice ? '390px' : '640px',
+        lineHeight: this.mobileDevice ? '390px' : '640px'
       }
     },
     actualSizeActive: function () {
@@ -237,6 +258,12 @@ export default {
     this.selectedLabel = this.labels.length ? this.labels[this.labels.length - 1] : ''
   },
   methods: {
+    setAlertMessage: function (msg, msgType) {
+      if (!msg) return false
+      this.alert = true
+      this.alertMessage = msg
+      this.alertMessageType = msgType || 'success'
+    },
     addNewLabel: function (newLabel) {
       var labelSet = this.labels.slice()
       if (labelSet.indexOf(newLabel) == -1) {
