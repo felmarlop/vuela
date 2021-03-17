@@ -140,7 +140,12 @@
           <v-divider></v-divider>
           <v-list rounded class="labels overflow-y-auto">
             <v-list-item-group v-model="selectedItem" color="secondary">
-              <v-list-item :key="'label_' + item" class="d-inline-block" v-for="item in labels">
+              <v-list-item
+                :key="'label_' + item"
+                :style="labelColor(item)"
+                class="d-inline-block"
+                v-for="item in labels"
+              >
                 <v-list-item-content class="d-inline-block">
                   <v-list-item-title v-text="item"></v-list-item-title>
                 </v-list-item-content>
@@ -283,6 +288,12 @@ export default {
     },
     updateHiddenLabels: function (lbs) {
       if (lbs) this.hiddenLabels = lbs
+    },
+    labelColor: function (item) {
+      if (this.$refs.birdComponent) {
+        let colorFn = this.$refs.birdComponent.getColorFn(this.labels)
+        return { backgroundColor: colorFn(item) }
+      }
     },
     increaseZoom: function () {
       this.zoom += ZOOM_STEP
