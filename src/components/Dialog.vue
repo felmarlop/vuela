@@ -36,6 +36,7 @@
             :show-regions="showRegions"
             :editing-mode="editingMode"
             @update-labels="$emit('update-labels', $event)"
+            @update-bird="$emit('update-bird', $event)"
             @update-hidden-labels="updateHiddenLabels"
             @image-loaded="imgLoaded = true"
             @set-alert-message="setAlertMessage"
@@ -234,8 +235,8 @@ export default {
       get: function () {
         return this.birdIndex + 1
       },
-      set: function (val) {
-        this.$emit('update-bird', val)
+      set: function (page) {
+        this.$emit('set-bird', page - 1)
       }
     },
     selectedItem: {

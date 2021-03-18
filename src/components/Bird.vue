@@ -44,6 +44,7 @@ function dragged(event, rgD3, cpnt) {
   event.subject['x'] = event.x
   event.subject['y'] = event.y
   updateRegionElements(rgD3, cpnt)
+  updateBirdData(cpnt)
 }
 
 // Method to resize a region
@@ -130,6 +131,7 @@ function resized(event, square, cpnt) {
   event.subject['x'] = event.x
   event.subject['y'] = event.y
   updateRegionElements(rgD3, cpnt)
+  updateBirdData(cpnt)
 }
 
 // Method to update elements binded to a region
@@ -280,6 +282,13 @@ function updateRegionElements(region, cpnt) {
     if (!d3.select('rect.adding').empty()) d3.select('rect.adding').moveToFront()
     d3.select('rect.overlay').moveToFront()
   }
+}
+
+function updateBirdData(cpnt) {
+  let newBird = _.cloneDeep(cpnt.bird),
+    rgs = cpnt.getRegions()
+  newBird.regions = rgs
+  cpnt.$emit('update-bird', newBird)
 }
 
 function zoom(cpnt, imgWrapper) {
@@ -516,7 +525,7 @@ export default {
         .append('g')
         .attr('id', 'g_')
 
-      cpnt.setRegions(cpnt.bird.regions || [], true)
+      cpnt.setRegions(cpnt.bird.regions || [], true, true)
 
       // Cross lines
       _g.append('line')
@@ -573,7 +582,7 @@ export default {
         })
       if (cpnt.editingMode) this.enableEditingMode()
     },
-    setRegions: function (data, animation) {
+    setRegions: function (data, animation, scale) {
       let cpnt = this,
         _g = d3.select('#g_'),
         imgWrapper = cpnt.img.parentElement,
@@ -581,6 +590,8 @@ export default {
         ic = 0,
         currentRg,
         colorFn
+
+      if (scale) data = this.scaledRegions(data)
 
       while (ic < data.length) {
         currentRg = data[ic]
@@ -735,6 +746,7 @@ export default {
     removeAllRegions: function () {
       d3.selectAll('.delete_region_wrapper,.resize').remove()
       this.setRegions([])
+      updateBirdData(this)
     },
     addNewRegion: function () {
       if (!d3.select('rect.region.adding').empty() || !initPoint) return false
@@ -785,7 +797,9 @@ export default {
       addingRect.data([newRegion]).classed('adding', false)
       addingText.data([newRegion]).classed('adding', false)
       addingBg.data([newRegion]).classed('adding', false)
+
       updateRegionElements(addingRect, this)
+      updateBirdData(this)
     },
     onClickOutside: function () {
       if (this.raw && !d3.select('rect.region.adding').empty()) {
@@ -902,7 +916,7 @@ export default {
     },
     resetRegions: function () {
       d3.selectAll('.delete_region_wrapper,.resize').remove()
-      this.setRegions(this.bird.regions || [], true)
+      this.setRegions(this.bird.regions || [], true, true)
       if (this.editingMode) this.enableEditingMode()
     },
     resetZoom: function () {

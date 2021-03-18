@@ -10,6 +10,7 @@
       :bird-index="birdIndex"
       :bird-length="birds.length"
       :labels="labels"
+      @set-bird="setBird"
       @update-bird="updateBird"
       @close-modal="closeModal"
       @update-labels="updateLabels"
@@ -104,14 +105,22 @@ export default {
     updateLabels: function (val) {
       if (val) this.labels = val
     },
-    updateBird: function (idx) {
-      this.selectedBird = this.birds[idx - 1]
-      this.birdIndex = idx - 1
+    setBird: function (idx) {
+      this.selectedBird = this.birds[idx]
+      this.birdIndex = idx
       if (this.$refs.idialog.$refs.birdComponent) {
         this.$refs.idialog.$refs.birdComponent.resetZoom()
       }
     },
+    updateBird: function (newBird) {
+      this.selectedBird = newBird
+      this.birds[this.birdIndex] = newBird
+    },
     openModal: function (bird, idx) {
+      if (this.dialog) {
+        this.dialog = false
+        return false
+      }
       if (bird) {
         this.selectedBird = bird
         this.birdIndex = idx
