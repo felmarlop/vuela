@@ -748,6 +748,11 @@ export default {
       this.setRegions([])
       updateBirdData(this)
     },
+    removeAddingRegion: function () {
+      d3.select('rect.region.adding').remove()
+      d3.select('text.region_label.adding').remove()
+      d3.select('rect.region_label_background.adding').remove()
+    },
     addNewRegion: function () {
       if (!d3.select('rect.region.adding').empty() || !initPoint) return false
       if (!this.selectedLabel) {
@@ -809,6 +814,7 @@ export default {
     removeRegionByIndex(idx) {
       let imgWrapper = this.img.parentElement
       d3.selectAll(imgWrapper.querySelectorAll('[index="' + idx + '"]')).remove()
+      updateBirdData(this)
     },
     removeRegionByLabel(lb) {
       let imgWrapper = this.img.parentElement,
@@ -821,6 +827,17 @@ export default {
         d3.selectAll(imgWrapper.querySelectorAll('[index="' + indexesToRemove[ir] + '"]')).remove()
         ir++
       }
+      updateBirdData(this)
+    },
+    removeLastRegion() {
+      if (d3.selectAll('rect.region').empty()) return false
+      let idx = 0
+      d3.selectAll('rect.region').each(function () {
+        if (parseInt(d3.select(this).attr('index')) > idx) {
+          idx = parseInt(d3.select(this).attr('index'))
+        }
+      })
+      this.removeRegionByIndex(idx)
     },
     displayLabels: function () {
       let cpnt = this

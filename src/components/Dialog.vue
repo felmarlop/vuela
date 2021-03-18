@@ -1,5 +1,12 @@
 <template>
-  <v-dialog :value="dialog" fullscreen hide-overlay transition="dialog-bottom-transition" content-class="image_dialog">
+  <v-dialog
+    :value="dialog"
+    fullscreen
+    persistent
+    hide-overlay
+    transition="dialog-bottom-transition"
+    content-class="image_dialog"
+  >
     <v-card>
       <v-toolbar dark color="secondary">
         <v-btn icon dark @click="$emit('close-modal')">
@@ -20,7 +27,7 @@
       </v-alert>
       <v-divider></v-divider>
       <v-row dense>
-        <v-col md="8">
+        <v-col :md="imgLoaded ? 8 : 12">
           <bird
             ref="birdComponent"
             :key="bird.url"
@@ -47,7 +54,6 @@
           />
           <v-pagination v-model="imgPage" :length="birdLength" :total-visible="5" color="secondary" v-if="imgLoaded">
           </v-pagination>
-          <v-divider></v-divider>
           <div class="buttons_img" v-if="imgLoaded">
             <div class="group_ico">
               <span class="zoom_value value">Ratio: {{ zoom }}</span>
@@ -249,7 +255,15 @@ export default {
     }
   },
   created: function () {
+    let cpnt = this,
+      args = { lbIndex: '', lbTimeout: undefined }
     this.selectedLabel = this.labels.length ? this.labels[this.labels.length - 1] : ''
+    window.addEventListener('keydown', function (event) {
+      cpnt.shortcuts(event, args)
+    })
+  },
+  destroyed: function () {
+    window.removeEventListener('keydown', this.shortcuts)
   },
   methods: {
     setAlertMessage: function (msg, msgType) {
@@ -259,7 +273,7 @@ export default {
       this.alertMessageType = msgType || 'success'
     },
     addNewLabel: function (newLabel) {
-      var labelSet = this.labels.slice()
+      let labelSet = this.labels.slice()
       if (newLabel && labelSet.indexOf(newLabel) == -1) {
         labelSet.push(newLabel)
         this.$emit('update-labels', labelSet)
@@ -321,6 +335,129 @@ export default {
       if (typeof val !== 'number' || val < ZOOM_MIN) val = ZOOM_MIN
       if (val > ZOOM_MAX) val = ZOOM_MAX
       this.zoom = Math.round(val * 100) / 100
+    },
+    shortcuts: function (event, args) {
+      if (!this.dialog || !this.imgLoaded) return false
+      let cpnt = this,
+        kcode = event.keyCode
+      if (event.shiftKey && event.ctrlKey) {
+        switch (kcode) {
+          // Remove all regions (ctrl+shift+d)
+          case 68:
+            if (this.$refs.birdComponent) {
+              this.$refs.birdComponent.removeAllRegions()
+            }
+            break
+        }
+      } else if (event.ctrlKey) {
+        switch (kcode) {
+          // Copy regions (ctrl+c)
+          case 67:
+            break
+          // Paste regions (ctrl+v)
+          case 86:
+            break
+        }
+      } else if (event.shiftKey) {
+        switch (kcode) {
+          // Decrease brightness (shift+a)
+          case 65:
+            this.decreaseBrightness()
+            break
+          // Increase contrast (shift+c)
+          case 67:
+            this.increaseContrast()
+            break
+          // Enable/disable region editor (shift+e)
+          case 69:
+            this.editingMode = !this.editingMode
+            break
+          // Fit window (shift+f)
+          case 70:
+            if (this.$refs.birdComponent) {
+              this.$refs.birdComponent.resetZoom()
+            }
+            break
+          // Actual size (shift+g)
+          case 71:
+            if (this.$refs.birdComponent) {
+              this.$refs.birdComponent.setActualSize()
+            }
+            break
+          // Hide/show regions (shift+h)
+          case 72:
+            this.showRegions = !this.showRegions
+            break
+          // Zoom in (shift+i)
+          case 73:
+            this.increaseZoom()
+            break
+          // Hide/show region labels (shift+l)
+          case 76:
+            this.showLabels = !this.showLabels
+            break
+          // Zoom out (shift+o)
+          case 79:
+            this.decreaseZoom()
+            break
+          // Reset image properties (shift+r)
+          case 82:
+            this.resetImage()
+            break
+          // Increase brightness (shift+s)
+          case 83:
+            this.increaseBrightness()
+            break
+          // Switch selected label (shift+t)
+          case 84:
+            if (this.selectedItem < this.labels.length - 1) {
+              this.selectedItem += 1
+            } else {
+              this.selectedItem = 0
+            }
+            break
+          // Decrease contrast (shift+x)
+          case 88:
+            this.decreaseContrast()
+            break
+        }
+      } else {
+        switch (kcode) {
+          // Remove last region (DELETE)
+          case 8:
+            if (this.$refs.birdComponent) {
+              let idx = this.labels.length - 1
+              this.$refs.birdComponent.removeLastRegion(idx)
+            }
+            break
+          // Remove adding region (ESC)
+          case 27:
+            if (this.$refs.birdComponent) {
+              this.$refs.birdComponent.removeAddingRegion()
+            }
+            break
+          // Next image (->, SPACE)
+          case 32:
+          case 39:
+            if (this.imgPage == this.birdLength) return false
+            this.imgPage += 1
+            break
+          // Previous image (<-)
+          case 37:
+            if (this.imgPage == 1) return false
+            this.imgPage -= 1
+            break
+        }
+        if (kcode >= 48 && kcode <= 57) {
+          args.lbIndex += String.fromCharCode(kcode)
+          clearTimeout(args.lbTimeout)
+          args.lbTimeout = setTimeout(function () {
+            let idx = parseInt(args.lbIndex)
+            if (idx < cpnt.labels.length) cpnt.selectedItem = idx
+            args.lbIndex = ''
+          }, 300)
+        }
+      }
     },
     resetImage: function () {
       this.brightness = DEFAULT_LUMINOSITY
