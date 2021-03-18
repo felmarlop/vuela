@@ -184,6 +184,9 @@
 #app .image_dialog .v-list.labels .label_index{
     font-family: 'Courier New';
 }
+#app .image_dialog .v-list.labels .v-list-item--active{
+    color: white;
+}
 #app .birds .image_wrapper img {
     width: 100%;
     height: 100%;
