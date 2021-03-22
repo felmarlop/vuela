@@ -57,54 +57,103 @@
           <div class="buttons_img" v-if="imgLoaded">
             <div class="group_ico">
               <span class="zoom_value value">Ratio: {{ zoom }}</span>
-              <v-btn
-                color="white"
-                class="ico"
-                small
-                :class="{ active: actualSizeActive }"
-                icon
-                @click="$refs.birdComponent.setActualSize()"
-              >
-                <v-icon>mdi-actual-size</v-icon>
-              </v-btn>
-              <v-btn
-                color="white"
-                class="ico"
-                small
-                :class="{ active: resetZoomActive }"
-                icon
-                @click="$refs.birdComponent.resetZoom()"
-              >
-                <v-icon>mdi-reset-zoom</v-icon>
-              </v-btn>
-              <v-btn color="white" class="ico" small icon @click="decreaseZoom()">
-                <v-icon>mdi-magnify-minus</v-icon>
-              </v-btn>
-              <v-btn color="white" class="ico" small icon @click="increaseZoom()">
-                <v-icon>mdi-magnify-plus</v-icon>
-              </v-btn>
+              <v-tooltip top>
+                <template #activator="{ on, attrs }">
+                  <v-btn
+                    color="white"
+                    class="ico"
+                    small
+                    :class="{ active: actualSizeActive }"
+                    icon
+                    v-bind="attrs"
+                    v-on="on"
+                    @click="$refs.birdComponent.setActualSize()"
+                  >
+                    <v-icon>mdi-actual-size</v-icon>
+                  </v-btn>
+                </template>
+                <span>Actual size (SHIFT+G)</span>
+              </v-tooltip>
+              <v-tooltip top>
+                <template #activator="{ on, attrs }">
+                  <v-btn
+                    color="white"
+                    class="ico"
+                    small
+                    :class="{ active: resetZoomActive }"
+                    icon
+                    v-bind="attrs"
+                    v-on="on"
+                    @click="$refs.birdComponent.resetZoom()"
+                  >
+                    <v-icon>mdi-reset-zoom</v-icon>
+                  </v-btn>
+                </template>
+                <span>Fit window (SHIFT+F)</span>
+              </v-tooltip>
+              <v-tooltip top>
+                <template #activator="{ on, attrs }">
+                  <v-btn color="white" class="ico" small icon v-bind="attrs" v-on="on" @click="decreaseZoom()">
+                    <v-icon>mdi-magnify-minus</v-icon>
+                  </v-btn>
+                </template>
+                <span>Zoom out (SHIFT+O)</span>
+              </v-tooltip>
+              <v-tooltip top>
+                <template #activator="{ on, attrs }">
+                  <v-btn color="white" class="ico" small icon v-bind="attrs" v-on="on" @click="increaseZoom()">
+                    <v-icon>mdi-magnify-plus</v-icon>
+                  </v-btn>
+                </template>
+                <span>Zoom in (SHIFT+I)</span>
+              </v-tooltip>
             </div>
             <div class="group_ico">
               <span class="brightness_value value">{{ brightness }}%</span>
-              <v-btn color="white" class="ico" small icon @click="decreaseBrightness()">
-                <v-icon>mdi-brightness-minus</v-icon>
-              </v-btn>
-              <v-btn color="white" class="ico" small icon @click="increaseBrightness()">
-                <v-icon>mdi-brightness-plus</v-icon>
-              </v-btn>
+              <v-tooltip top>
+                <template #activator="{ on, attrs }">
+                  <v-btn color="white" class="ico" small icon v-bind="attrs" v-on="on" @click="decreaseBrightness()">
+                    <v-icon>mdi-brightness-minus</v-icon>
+                  </v-btn>
+                </template>
+                <span>Decrease brightness (SHIFT+A)</span>
+              </v-tooltip>
+              <v-tooltip top>
+                <template #activator="{ on, attrs }">
+                  <v-btn color="white" class="ico" small icon v-bind="attrs" v-on="on" @click="increaseBrightness()">
+                    <v-icon>mdi-brightness-plus</v-icon>
+                  </v-btn>
+                </template>
+                <span>Increase brightness (SHIFT+S)</span>
+              </v-tooltip>
             </div>
             <div class="group_ico">
               <span class="contrast_value value">{{ contrast }}%</span>
-              <v-btn color="white" class="ico" small icon @click="decreaseContrast()">
-                <v-icon>mdi-contrast-minus</v-icon>
-              </v-btn>
-              <v-btn color="white" class="ico" small icon @click="increaseContrast()">
-                <v-icon>mdi-contrast-plus</v-icon>
-              </v-btn>
+              <v-tooltip top>
+                <template #activator="{ on, attrs }">
+                  <v-btn color="white" class="ico" small icon v-bind="attrs" v-on="on" @click="decreaseContrast()">
+                    <v-icon>mdi-contrast-minus</v-icon>
+                  </v-btn>
+                </template>
+                <span>Increase contrast (SHIFT+X)</span>
+              </v-tooltip>
+              <v-tooltip top>
+                <template #activator="{ on, attrs }">
+                  <v-btn color="white" class="ico" small icon v-bind="attrs" v-on="on" @click="increaseContrast()">
+                    <v-icon>mdi-contrast-plus</v-icon>
+                  </v-btn>
+                </template>
+                <span>Increase contrast (SHIFT+C)</span>
+              </v-tooltip>
             </div>
-            <v-btn color="white" class="ico" small icon @click="resetImage()">
-              <v-icon>mdi-reload</v-icon>
-            </v-btn>
+            <v-tooltip top>
+              <template #activator="{ on, attrs }">
+                <v-btn color="white" class="ico" small icon v-bind="attrs" v-on="on" @click="resetImage()">
+                  <v-icon>mdi-reload</v-icon>
+                </v-btn>
+              </template>
+              <span>Reset image (SHIFT+R)</span>
+            </v-tooltip>
           </div>
         </v-col>
         <v-col md="4" class="pa-md-4" v-if="imgLoaded">
@@ -139,9 +188,21 @@
             :label="editingMode ? 'Disable editing mode' : 'Enable editing mode'"
           >
           </v-switch>
-          <v-btn class="ma-auto mb-4 d-block" icon outlined @click="$refs.birdComponent.removeAllRegions()">
-            <v-icon>mdi-delete</v-icon>
-          </v-btn>
+          <v-tooltip left>
+            <template #activator="{ on, attrs }">
+              <v-btn
+                class="ma-auto mb-4 d-block"
+                icon
+                outlined
+                v-bind="attrs"
+                v-on="on"
+                @click="$refs.birdComponent.removeAllRegions()"
+              >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+            </template>
+            <span>Remove all regions (CTRL+SHIFT+D)</span>
+          </v-tooltip>
           <v-divider></v-divider>
           <v-list rounded class="labels overflow-y-auto" :style="{ maxHeight: '28%' }">
             <v-list-item-group v-model="selectedItem" color="secondary">
@@ -466,7 +527,9 @@ export default {
     resetImage: function () {
       this.brightness = DEFAULT_LUMINOSITY
       this.contrast = DEFAULT_LUMINOSITY
-      this.$refs.birdComponent.resetZoom()
+      if (this.$refs.birdComponent) {
+        this.$refs.birdComponent.resetZoom()
+      }
     }
   }
 }
