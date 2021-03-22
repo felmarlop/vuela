@@ -297,7 +297,8 @@ export default {
       return this.zoom == Math.round(this.$refs.birdComponent.actualSize * 100) / 100
     },
     resetZoomActive: function () {
-      return this.zoom == DEFAULT_ZOOM
+      let tr = this.$refs.birdComponent.transform
+      return this.zoom == DEFAULT_ZOOM && !tr.x && !tr.y
     },
     imgPage: {
       get: function () {
