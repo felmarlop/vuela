@@ -178,11 +178,11 @@
     text-align: left;
     left: 72%;
 }
-#app .image_dialog .v-list.labels {
-    max-height: 50%;
-}
 #app .image_dialog .v-list.labels .v-list-item--active{
     color: white;
+}
+#app .image_dialog .v-list.labels .label_index{
+    font-family: 'Courier New';
 }
 #app .birds .image_wrapper img {
     width: 100%;
@@ -230,7 +230,7 @@
     line-height: 390px;
 }
 #app .image_dialog .label_wrapper{
-    max-width: 150px;
+    max-width: 120px;
 }
 @media (min-width:960px) { 
     #app .image_dialog img{
@@ -243,4 +243,9 @@
     #app .image_dialog .label_wrapper{
         max-width: 300px;
     }
+}
+#app .image_dialog .label_wrapper span{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

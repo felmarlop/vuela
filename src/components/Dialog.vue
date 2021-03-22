@@ -112,11 +112,11 @@
             v-model="selectedLabel"
             placeholder="Type your label"
             outlined
-            class="float-left ml-4"
-            :style="{ width: '80%' }"
+            class="float-left ml-4 mt-4"
+            :style="{ width: '70%' }"
             @change="addNewLabel($event)"
           ></v-text-field>
-          <v-btn class="mt-2" icon outlined @click="selectedLabel = ''"><v-icon>mdi-close</v-icon></v-btn>
+          <v-btn class="mt-6" icon outlined @click="selectedLabel = ''"><v-icon>mdi-close</v-icon></v-btn>
           <v-switch
             v-model="showLabels"
             class="d-block ml-4"
@@ -143,16 +143,17 @@
             <v-icon>mdi-delete</v-icon>
           </v-btn>
           <v-divider></v-divider>
-          <v-list rounded class="labels overflow-y-auto">
+          <v-list rounded class="labels overflow-y-auto" :style="{ maxHeight: '28%' }">
             <v-list-item-group v-model="selectedItem" color="secondary">
               <v-list-item
                 :key="'label_' + item"
                 :style="labelColor(item)"
                 class="d-inline-block mr-1"
-                v-for="item in labels"
+                v-for="(item, idx) in labels"
               >
-                <v-list-item-content class="d-inline-block label_wrapper">
-                  <v-list-item-title :style="labelStyle" v-text="item"></v-list-item-title>
+                <v-list-item-content class="d-inline-block">
+                  <v-list-item-title class="d-inline-block label_wrapper" v-html="labelContent(item, idx)">
+                  </v-list-item-title>
                 </v-list-item-content>
                 <v-hover v-slot="{ hover }">
                   <v-list-item-action class="float-right mt-3" @click.stop="clickListIcon(item)">
@@ -278,6 +279,9 @@ export default {
         labelSet.push(newLabel)
         this.$emit('update-labels', labelSet)
       }
+    },
+    labelContent: function (item, idx) {
+      return '<span class="label_index">[' + idx + ']</span><span>' + item + '</span>'
     },
     clickListIcon: function (lb) {
       if (this.showRegions) {
