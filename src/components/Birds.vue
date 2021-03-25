@@ -1,8 +1,16 @@
 <template>
   <div class="birds_wrapper mt-6 mb-6">
-    <transition-group name="image-list" class="birds" appear>
+    <v-text-field
+      v-model="hash"
+      label="Type your BigML composite hash"
+      outlined
+      :style="{ margin: '0 auto', width: '50%' }"
+      @change="listBirds()"
+    ></v-text-field>
+    <transition-group name="image-list" class="birds" appear v-if="birds.length">
       <bird :key="'grid_' + b.url" :bird="b" @open-modal="openModal(b, index)" v-for="(b, index) in birds" />
     </transition-group>
+    <div class="loading" v-if="!birds.length && loadingMsg">{{ loadingMsg }}</div>
     <idialog
       ref="idialog"
       :dialog="dialog"
@@ -15,7 +23,7 @@
       @close-modal="closeModal"
       @update-labels="updateLabels"
     />
-    <v-btn @click="shuffle(true)">Shuffle</v-btn>
+    <v-btn @click="shuffle(true)" v-show="birds.length">Shuffle</v-btn>
   </div>
 </template>
 
@@ -23,6 +31,7 @@
 import Bird from './Bird.vue'
 import ImageDialog from './Dialog.vue'
 import _ from 'lodash'
+import axios from 'axios'
 
 let shuffleInterval
 
@@ -34,63 +43,56 @@ export default {
   },
   data: function () {
     return {
-      birds: [
-        {
-          url:
-            'https://strato.dev.bigml.com/shared/source/6033c212520f907ec900000a/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: []
-        },
-        {
-          url:
-            'https://strato.dev.bigml.com/shared/source/6033c212520f907ec900000d/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: []
-        },
-        {
-          url:
-            'https://strato.dev.bigml.com/shared/source/6033c212520f907ec9000007/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: []
-        },
-        {
-          url:
-            'https://strato.dev.bigml.com/shared/source/6033ef65520f907ef3000004/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: []
-        },
-        {
-          url:
-            'https://strato.dev.bigml.com/shared/source/6033c213520f907ec9000010/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: []
-        },
-        {
-          url:
-            'https://strato.dev.bigml.com/shared/source/603cd1ab520f907e81000098/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: []
-        },
-        {
-          url:
-            'https://strato.dev.bigml.com/shared/source/603cd112520f907e5e00009b/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: []
-        },
-        {
-          url:
-            'https://strato.dev.bigml.com/shared/source/603d01f0520f907e510000c3/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: []
-        },
-        {
-          url:
-            'https://strato.dev.bigml.com/shared/source/603d01f0520f907e8100009b/image/source/ic7TPfwzIwPT3tSX3n8lRvHYiRK',
-          regions: []
-        }
-      ],
+      birds: [],
       labels: ['goshawk', 'golden', 'snake eagle', 'imperial', 'vulture', 'bonelli'],
+      hash: 'uw59j9ht1miaorPalQzCm1bzXfo',
       selectedBird: null,
       birdIndex: 0,
-      dialog: false
+      dialog: false,
+      loadingMsg: ''
     }
   },
   created: function () {
     this.resetInterval()
   },
+  mounted: function () {
+    this.listBirds()
+  },
   methods: {
+    listBirds: function () {
+      let cpnt = this
+      this.birds = []
+      if (!this.hash) {
+        this.loadingMsg = ''
+        return false
+      }
+      this.loadingMsg = 'Loading...'
+      axios
+        .get(
+          'http://localhost:8000/internal/andromeda/shared/source/' +
+            this.hash +
+            '?username=gallery;api_key=e45ef148a7f6e63d78df5bcc13d06f22dc95cb38;exclude=sources,head;optype=image,regions'
+        )
+        .then(function (response) {
+          let preview = response.data['fields_preview'],
+            idx = 0,
+            ids
+          if (preview) {
+            ids = Object.values(preview)[0]
+            while (idx < ids.length) {
+              cpnt.birds.push({
+                url: 'http://localhost:1025/shared/source/' + ids[idx] + '/image/source/' + cpnt.hash,
+                regions: []
+              })
+              idx++
+            }
+          }
+          cpnt.loadingMsg = cpnt.birds.length ? '' : 'There are no images'
+        })
+        .catch(function () {
+          cpnt.loadingMsg = 'An herror happened retrieving the birds...'
+        })
+    },
     shuffle: function (reset) {
       this.birds = _.shuffle(this.birds)
       if (reset) this.resetInterval()
