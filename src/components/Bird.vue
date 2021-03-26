@@ -28,7 +28,9 @@ function dragged(event, rgD3, cpnt) {
 
   let rgData = rgD3.data()[0],
     newX = parseFloat(event.x) - parseFloat(event.subject.x || event.x) + parseFloat(rgD3.attr('x')),
-    newY = parseFloat(event.y) - parseFloat(event.subject.y || event.y) + parseFloat(rgD3.attr('y'))
+    newY = parseFloat(event.y) - parseFloat(event.subject.y || event.y) + parseFloat(rgD3.attr('y')),
+    w = rgData[3] - rgData[1],
+    h = rgData[4] - rgData[2]
   if (newX < 0) newX = 0
   if (newY < 0) newY = 0
 
@@ -40,11 +42,10 @@ function dragged(event, rgD3, cpnt) {
   rgD3
     .attr('x', newX)
     .attr('y', newY)
-    .data([[newX, newY, rgData[2], rgData[3], rgData[4]]])
+    .data([[rgData[0], newX, newY, newX + w, newY + h]])
   event.subject['x'] = event.x
   event.subject['y'] = event.y
   updateRegionElements(rgD3, cpnt)
-  updateBirdData(cpnt)
 }
 
 // Method to resize a region
@@ -126,12 +127,11 @@ function resized(event, square, cpnt) {
 
   // Update region data
   rgD3.attr('x', newX).attr('y', newY).attr('width', newW).attr('height', newH)
-  label = rgD3.data()[0][4]
-  rgD3.data([[newX, newY, newW, newH, label]])
+  label = rgD3.data()[0][0]
+  rgD3.data([[label, newX, newY, newX + newW, newY + newH]])
   event.subject['x'] = event.x
   event.subject['y'] = event.y
   updateRegionElements(rgD3, cpnt)
-  updateBirdData(cpnt)
 }
 
 // Method to update elements binded to a region
@@ -155,29 +155,29 @@ function updateRegionElements(region, cpnt) {
 
   d3.select(txt)
     .attr('x', function () {
-      return parseFloat(rgData[0]) + padding
+      return parseFloat(rgData[1]) + padding
     })
     .attr('y', function () {
-      res = parseFloat(rgData[1]) - padding - margin
+      res = parseFloat(rgData[2]) - padding - margin
       if (res < textLimit) res = textLimit
       return res
     })
     .style('display', 'block')
     .style('opacity', function () {
-      return rgData && rgData[4] ? 1 : 0
+      return rgData && rgData[0] ? 1 : 0
     })
     .text(function (d) {
-      return d[4] || ''
+      return d[0] || ''
     })
 
   d3.select(imgWrapper.querySelectorAll('rect.region_label_background[index="' + idx + '"]')[0])
     .attr('rx', radius)
     .attr('ry', radius)
     .attr('x', function () {
-      return parseFloat(rgData[0])
+      return parseFloat(rgData[1])
     })
     .attr('y', function () {
-      res = parseFloat(rgData[1]) - height - margin
+      res = parseFloat(rgData[2]) - height - margin
       if (res < rectLimit) res = rectLimit
       return res
     })
@@ -188,78 +188,78 @@ function updateRegionElements(region, cpnt) {
     .style('display', function () {
       let show = cpnt.showLabels
       if (!cpnt.showRegions) {
-        show = show && cpnt.hiddenLabels.indexOf(rgData[4]) == -1
+        show = show && cpnt.hiddenLabels.indexOf(rgData[0]) == -1
       }
       return show ? 'block' : 'none'
     })
     .transition()
     .style('opacity', function () {
-      return rgData && rgData[4] ? 1 : 0
+      return rgData && rgData[0] ? 1 : 0
     })
   d3.select(txt).style('display', function () {
     let show = cpnt.showLabels
     if (!cpnt.showRegions) {
-      show = show && cpnt.hiddenLabels.indexOf(rgData[4]) == -1
+      show = show && cpnt.hiddenLabels.indexOf(rgData[0]) == -1
     }
     return show ? 'block' : 'none'
   })
   region.style('display', function () {
-    return cpnt.hiddenLabels.indexOf(rgData[4]) == -1 ? 'block' : 'none'
+    return cpnt.hiddenLabels.indexOf(rgData[0]) == -1 ? 'block' : 'none'
   })
 
   d3.select(imgWrapper.querySelectorAll('.delete_region_wrapper[index="' + idx + '"]')[0])
     .attr('x', function () {
-      closeX = parseFloat(rgData[0]) + parseFloat(rgData[2]) + closeMargin
+      closeX = parseFloat(rgData[3]) + closeMargin
       if (closeX + deleteSize >= cpnt.imgWidth) closeX = cpnt.imgWidth - deleteSize
       return closeX
     })
     .attr('y', function () {
-      return parseFloat(rgData[1])
+      return parseFloat(rgData[2])
     })
     .attr('width', deleteSize)
     .attr('height', deleteSize)
     .style('display', function () {
-      return cpnt.hiddenLabels.indexOf(rgData[4]) == -1 ? 'block' : 'none'
+      return cpnt.hiddenLabels.indexOf(rgData[0]) == -1 ? 'block' : 'none'
     })
 
   d3.select(imgWrapper.querySelectorAll('rect.top_left[index="' + idx + '"]')[0])
     .attr('x', function () {
-      return rgData[0] - resizesz / 2
+      return rgData[1] - resizesz / 2
     })
     .attr('y', function () {
-      return rgData[1] - resizesz / 2
+      return rgData[2] - resizesz / 2
     })
     .attr('width', resizesz)
     .attr('height', resizesz)
   d3.select(imgWrapper.querySelectorAll('rect.top_right[index="' + idx + '"]')[0])
     .attr('x', function () {
-      return parseFloat(rgData[0]) + parseFloat(rgData[2] - resizesz / 2)
+      return parseFloat(rgData[3] - resizesz / 2)
     })
     .attr('y', function () {
-      return rgData[1] - resizesz / 2
+      return rgData[2] - resizesz / 2
     })
     .attr('width', resizesz)
     .attr('height', resizesz)
   d3.select(imgWrapper.querySelectorAll('rect.bottom_right[index="' + idx + '"]')[0])
     .attr('x', function () {
-      return parseFloat(rgData[0]) + parseFloat(rgData[2]) - resizesz / 2
+      return parseFloat(rgData[3] - resizesz / 2)
     })
     .attr('y', function () {
-      return parseFloat(rgData[1]) + parseFloat(rgData[3]) - resizesz / 2
+      return parseFloat(rgData[4] - resizesz / 2)
     })
     .attr('width', resizesz)
     .attr('height', resizesz)
   d3.select(imgWrapper.querySelectorAll('rect.bottom_left[index="' + idx + '"]')[0])
     .attr('x', function () {
-      return rgData[0] - resizesz / 2
+      return rgData[1] - resizesz / 2
     })
     .attr('y', function () {
-      return parseFloat(rgData[1]) + parseFloat(rgData[3]) - resizesz / 2
+      return parseFloat(rgData[4] - resizesz / 2)
     })
     .attr('width', resizesz)
     .attr('height', resizesz)
   d3.selectAll(imgWrapper.querySelectorAll('rect.resize[index="' + idx + '"]')).style('display', function () {
-    return cpnt.hiddenLabels.indexOf(rgData[4]) == -1 ? 'block' : 'none'
+    return cpnt.hiddenLabels.indexOf(rgData[0]) == -1 ? 'block' : 'none'
   })
 
   // Sort elements
@@ -597,7 +597,7 @@ export default {
         currentRg = data[ic]
         if (currentRg.length == 5) {
           validRegions.push(currentRg)
-          if (currentRg[4] && this.labelSet.indexOf(currentRg[4]) == -1) this.labelSet.push(currentRg[4])
+          if (currentRg[0] && this.labelSet.indexOf(currentRg[0]) == -1) this.labelSet.push(currentRg[0])
         }
         ic++
       }
@@ -615,33 +615,38 @@ export default {
           return i
         })
         .attr('data-label', function (d) {
-          return d[4] || cpnt.selectedLabel
+          return d[0] || cpnt.selectedLabel
         })
         .classed('region', true)
         .classed('adding', function (d) {
-          return !d[4]
+          return !d[0]
         })
         .attr('stroke', function (d) {
-          return colorFn(d[4] || cpnt.selectedLabel)
+          return colorFn(d[0] || cpnt.selectedLabel)
         })
         .attr('fill', function (d) {
-          return colorFn(d[4] || cpnt.selectedLabel)
+          return colorFn(d[0] || cpnt.selectedLabel)
         })
         .attr('stroke-width', '2px')
         .attr('fill-opacity', 0.2)
         .attr('x', function (d) {
-          return d[0] + d[2] / 2
+          return (d[1] + d[3]) / 2
         })
         .attr('y', function (d) {
-          return d[1] + d[3] / 2
+          return (d[2] + d[4]) / 2
         })
         .style('display', function (d) {
-          return cpnt.hiddenLabels.indexOf(d[4]) == -1 ? 'block' : 'none'
+          return cpnt.hiddenLabels.indexOf(d[0]) == -1 ? 'block' : 'none'
         })
         .call(
-          d3.drag().on('drag', function (event) {
-            dragged(event, d3.select(this), cpnt)
-          })
+          d3
+            .drag()
+            .on('drag', function (event) {
+              dragged(event, d3.select(this), cpnt)
+            })
+            .on('end', function () {
+              updateBirdData(cpnt)
+            })
         )
         .transition()
         .duration(function () {
@@ -649,16 +654,16 @@ export default {
           return 0
         })
         .attr('x', function (d) {
-          return d[0]
-        })
-        .attr('y', function (d) {
           return d[1]
         })
-        .attr('width', function (d) {
+        .attr('y', function (d) {
           return d[2]
         })
+        .attr('width', function (d) {
+          return d[3] - d[1]
+        })
         .attr('height', function (d) {
-          return d[3]
+          return d[4] - d[2]
         })
         .on('end', function () {
           // Image zoom
@@ -679,7 +684,7 @@ export default {
         })
         .classed('region_label', true)
         .classed('adding', function (d) {
-          return !d[4]
+          return !d[0]
         })
         .style('font-size', '0.98em')
         .style('stroke', 'rgb(255, 255, 255)')
@@ -701,13 +706,13 @@ export default {
         })
         .classed('region_label_background', true)
         .classed('adding', function (d) {
-          return !d[4]
+          return !d[0]
         })
         .attr('stroke', 'rgb(255, 255, 255)')
         .attr('stroke-width', 1)
         .attr('fill', 'rgb(0, 0, 0)')
         .style('opacity', function (d) {
-          return d3.select(this).classed('new') || !d[4] ? 0 : 1
+          return d3.select(this).classed('new') || !d[0] ? 0 : 1
         })
       lbBackgrounds.exit().remove()
 
@@ -723,11 +728,11 @@ export default {
         idx = 0
       while (idx < rgs.length) {
         originalRegions.push([
-          scl.x(rgs[idx][0]),
-          scl.y(rgs[idx][1]),
-          scl.x(rgs[idx][2]),
-          scl.y(rgs[idx][3]),
-          rgs[idx][4]
+          rgs[idx][0],
+          scl.x(rgs[idx][1]),
+          scl.y(rgs[idx][2]),
+          scl.x(rgs[idx][3]),
+          scl.y(rgs[idx][4])
         ])
         idx++
       }
@@ -738,7 +743,7 @@ export default {
         scaledRgs = [],
         idx = 0
       while (idx < rgs.length) {
-        scaledRgs.push([scl.x(rgs[idx][0]), scl.y(rgs[idx][1]), scl.x(rgs[idx][2]), scl.y(rgs[idx][3]), rgs[idx][4]])
+        scaledRgs.push([rgs[idx][0], scl.x(rgs[idx][1]), scl.y(rgs[idx][2]), scl.x(rgs[idx][3]), scl.y(rgs[idx][4])])
         idx++
       }
       return scaledRgs
@@ -775,7 +780,7 @@ export default {
       }
 
       let data = d3.selectAll('rect.region').data()
-      data.push([x, y, 0, 0, ''])
+      data.push(['', x, y, x, y])
       this.setRegions(data)
     },
     finishRegion: function () {
@@ -783,15 +788,15 @@ export default {
         addingText = d3.select('text.region_label.adding'),
         addingBg = d3.select('rect.region_label_background.adding'),
         newRegion = [
+          addingRect.attr('data-label') || this.selectedLabel,
           parseInt(addingRect.attr('x')),
           parseInt(addingRect.attr('y')),
-          parseInt(addingRect.attr('width')),
-          parseInt(addingRect.attr('height')),
-          addingRect.attr('data-label') || this.selectedLabel
+          parseInt(addingRect.attr('width')) + parseInt(addingRect.attr('x')),
+          parseInt(addingRect.attr('height')) + parseInt(addingRect.attr('y'))
         ]
 
       initPoint = null
-      if (!newRegion[2] || !newRegion[3]) {
+      if (newRegion[3] == newRegion[1] || newRegion[4] == newRegion[2]) {
         addingRect.remove()
         addingText.remove()
         addingBg.remove()
@@ -821,7 +826,7 @@ export default {
         indexesToRemove = [],
         ir = 0
       d3.selectAll('rect.region').each(function (d) {
-        if (d.length == 5 && d[4] == lb) indexesToRemove.push(d3.select(this).attr('index'))
+        if (d.length == 5 && d[0] == lb) indexesToRemove.push(d3.select(this).attr('index'))
       })
       while (ir < indexesToRemove.length) {
         d3.selectAll(imgWrapper.querySelectorAll('[index="' + indexesToRemove[ir] + '"]')).remove()
@@ -842,7 +847,7 @@ export default {
     displayLabels: function () {
       let cpnt = this
       d3.selectAll('.region_label,.region_label_background').style('display', function (d) {
-        return cpnt.showRegions || cpnt.hiddenLabels.indexOf(d[4]) == -1 ? 'block' : 'none'
+        return cpnt.showRegions || cpnt.hiddenLabels.indexOf(d[0]) == -1 ? 'block' : 'none'
       })
     },
     hideLabels: function () {
@@ -907,9 +912,14 @@ export default {
         if (update) updateRegionElements(d3.select(this), cpnt)
       })
       _g.selectAll('rect.resize').call(
-        d3.drag().on('drag', function (event) {
-          resized(event, this, cpnt)
-        })
+        d3
+          .drag()
+          .on('drag', function (event) {
+            resized(event, this, cpnt)
+          })
+          .on('end', function () {
+            updateBirdData(cpnt)
+          })
       )
     },
     disableEditingMode: function () {

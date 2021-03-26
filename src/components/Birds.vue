@@ -45,7 +45,7 @@ export default {
     return {
       birds: [],
       labels: ['goshawk', 'golden', 'snake eagle', 'imperial', 'vulture', 'bonelli'],
-      hash: 'uw59j9ht1miaorPalQzCm1bzXfo',
+      hash: 'nEpbDVV2FsapcNUeQ6HCdWmQr3H',
       selectedBird: null,
       birdIndex: 0,
       dialog: false,
@@ -66,23 +66,35 @@ export default {
         this.loadingMsg = ''
         return false
       }
+
       this.loadingMsg = 'Loading...'
       axios
-        .get(
-          'http://localhost:8000/internal/andromeda/shared/source/' +
-            this.hash +
-            '?username=gallery;api_key=e45ef148a7f6e63d78df5bcc13d06f22dc95cb38;exclude=sources,head;optype=image,regions'
-        )
+        .get('https://localhost:1026/andromeda/shared/source/' + this.hash + '?exclude=sources;parent_optype=!image')
         .then(function (response) {
-          let preview = response.data['fields_preview'],
+          let fields = response.data['fields'],
+            preview = response.data['fields_preview'],
             idx = 0,
-            ids
+            keys,
+            ids,
+            rgs
           if (preview) {
-            ids = Object.values(preview)[0]
+            keys = Object.keys(preview)
+            while (idx < keys.length) {
+              if (fields[keys[idx]].optype == 'image') {
+                ids = preview[keys[idx]]
+              }
+              if (fields[keys[idx]].optype == 'regions') {
+                rgs = preview[keys[idx]]
+              }
+              idx++
+            }
+          }
+          if (ids && rgs && ids.length == rgs.length) {
+            idx = 0
             while (idx < ids.length) {
               cpnt.birds.push({
                 url: 'http://localhost:1025/shared/source/' + ids[idx] + '/image/source/' + cpnt.hash,
-                regions: []
+                regions: rgs[idx]
               })
               idx++
             }
@@ -90,7 +102,7 @@ export default {
           cpnt.loadingMsg = cpnt.birds.length ? '' : 'There are no images'
         })
         .catch(function () {
-          cpnt.loadingMsg = 'An herror happened retrieving the birds...'
+          cpnt.loadingMsg = 'An error happened retrieving the birds...'
         })
     },
     shuffle: function (reset) {
