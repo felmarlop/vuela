@@ -8,12 +8,13 @@
       @change="listBirds()"
     ></v-text-field>
     <transition-group name="image-list" class="birds" appear v-if="birds.length">
-      <bird :key="'grid_' + b.url" :bird="b" @open-modal="openModal(b, index)" v-for="(b, index) in birds" />
+      <bird :key="'grid_' + b.url" :bird="b" :bindex="index" @open-modal="openModal" v-for="(b, index) in birds" />
     </transition-group>
     <div class="loading" v-if="!birds.length && loadingMsg">{{ loadingMsg }}</div>
     <idialog
       ref="idialog"
       :dialog="dialog"
+      :region-events="regionEvents"
       :bird="selectedBird"
       :bird-index="birdIndex"
       :bird-length="birds.length"
@@ -49,6 +50,7 @@ export default {
       selectedBird: null,
       birdIndex: 0,
       dialog: false,
+      regionEvents: true,
       loadingMsg: ''
     }
   },
@@ -130,7 +132,8 @@ export default {
       this.selectedBird = newBird
       this.birds[this.birdIndex] = newBird
     },
-    openModal: function (bird, idx) {
+    openModal: function (bird, idx, events) {
+      this.regionEvents = events || false
       if (this.dialog) {
         this.dialog = false
         return false
@@ -147,8 +150,14 @@ export default {
       }
     },
     closeModal: function () {
+      let cpnt = this
       this.dialog = false
       this.resetInterval()
+      setTimeout(function () {
+        if (cpnt.dialog) return false
+        cpnt.selectedBird = null
+        cpnt.birdIndex = 0
+      }, 500)
     }
   }
 }

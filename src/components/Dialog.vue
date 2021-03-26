@@ -27,12 +27,13 @@
       </v-alert>
       <v-divider></v-divider>
       <v-row dense>
-        <v-col :md="imgLoaded ? 8 : 12">
+        <v-col :md="imgLoaded && regionEvents ? 8 : 12">
           <bird
             ref="birdComponent"
             :key="bird.url"
             :bird="bird"
             :raw="true"
+            :region-events="regionEvents"
             :expanded="true"
             :img-style="imgStyle"
             :zoom="zoom"
@@ -48,6 +49,7 @@
             @image-loaded="imgLoaded = true"
             @set-alert-message="setAlertMessage"
             @set-zoom="setZoom"
+            @set-show-labels="setShowLabels"
             @set-show-regions="setShowRegions"
             @set-editing="setEditing"
             v-if="bird"
@@ -156,7 +158,7 @@
             </v-tooltip>
           </div>
         </v-col>
-        <v-col md="4" class="pa-md-4" v-if="imgLoaded">
+        <v-col md="4" class="pa-md-4" v-if="imgLoaded && regionEvents">
           <v-text-field
             v-model="selectedLabel"
             placeholder="Type your label"
@@ -249,6 +251,7 @@ export default {
   components: { bird: Bird },
   props: {
     dialog: Boolean,
+    regionEvents: Boolean,
     bird: {
       type: Object,
       default: null
@@ -389,6 +392,9 @@ export default {
     decreaseContrast: function () {
       this.contrast -= LUMINOSITY_STEP
       if (this.contrast < LUMINOSITY_MIN) this.contrast = LUMINOSITY_MIN
+    },
+    setShowLabels: function (val) {
+      this.showLabels = val
     },
     setShowRegions: function (val) {
       this.hiddenLabels = val ? [] : _.cloneDeep(this.labels)

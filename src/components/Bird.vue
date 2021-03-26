@@ -2,8 +2,18 @@
   <div v-click-outside="onClickOutside" class="image_wrapper">
     <div class="zoom_wrapper">
       <transition name="image-fade" @afterEnter="init">
-        <img :src="birdUrl" :style="imgStyle" @load="loaded" @error="error" @click="openModal" v-show="isLoaded" />
+        <img
+          :src="birdUrl"
+          :style="imgStyle"
+          @load="loaded"
+          @error="error"
+          @click="openModal(false)"
+          v-show="isLoaded"
+        />
       </transition>
+      <v-btn icon dark small :style="editStyle" @click="openModal(true)" v-if="!expanded">
+        <v-icon>mdi-pencil</v-icon>
+      </v-btn>
     </div>
     <div class="loading" v-if="isError">Error happened loading the image...</div>
     <div class="loading" v-else v-show="!isLoaded">Loading...</div>
@@ -318,6 +328,10 @@ function zoom(cpnt, imgWrapper) {
     })
     .on('end', function (ev) {
       d3.select(imgWrapper.parentElement).style('cursor', 'default')
+      if (!cpnt.regionEvents) {
+        d3.select('rect.overlay').style('cursor', 'default')
+        return false
+      }
       d3.select('rect.overlay').style('cursor', 'crosshair')
       if (initPoint) {
         cpnt.$emit('set-editing', false)
@@ -363,6 +377,10 @@ export default {
       type: Object,
       default: null
     },
+    bindex: {
+      type: Number,
+      default: 0
+    },
     imgStyle: {
       type: Object,
       default: null
@@ -386,6 +404,10 @@ export default {
     selectedLabel: {
       type: String,
       default: ''
+    },
+    regionEvents: {
+      type: Boolean,
+      default: true
     },
     showLabels: {
       type: Boolean,
@@ -413,6 +435,9 @@ export default {
     }
   },
   computed: {
+    editStyle: function () {
+      return { backgroundColor: 'rgba(0,0,0,.38)', float: 'right', position: 'relative', bottom: '32px', right: '4px' }
+    },
     actualSize: function () {
       if (!this.isLoaded || !this.img) return null
       let maxImgHeight = parseInt(window.getComputedStyle(this.img).getPropertyValue('max-height')),
@@ -487,9 +512,9 @@ export default {
     )
   },
   methods: {
-    openModal: function () {
+    openModal: function (events) {
       if (this.expanded) return false
-      this.$emit('open-modal', this.bird)
+      this.$emit('open-modal', this.bird, this.bindex, events)
     },
     loaded: function () {
       this.isLoaded = true
@@ -503,7 +528,14 @@ export default {
       cpnt.img = el
       cpnt.transform = { k: DEFAULT_ZOOM, x: 0, y: 0 }
       this.$emit('set-zoom', DEFAULT_ZOOM)
+      d3.selectAll('svg').remove()
+
       if (!el || !cpnt.expanded) return false
+      if (!cpnt.regionEvents) {
+        cpnt.$emit('set-show-labels', true)
+        cpnt.$emit('set-editing', false)
+        cpnt.$emit('set-show-regions', true)
+      }
 
       // Compute the image width and height
       let maxImgHeight = parseInt(window.getComputedStyle(el).getPropertyValue('max-height'))
@@ -512,7 +544,6 @@ export default {
       if (this.imgHeight > maxImgHeight) this.imgHeight = maxImgHeight
 
       // Image svg
-      d3.selectAll('svg').remove()
       let _g = d3
         .select(el.parentElement)
         .append('svg')
@@ -559,10 +590,12 @@ export default {
           }
         })
         .on('mousemove.overlay', function (event) {
+          if (!cpnt.regionEvents) return false
           let pointer = [event.offsetX, event.offsetY]
           d3.selectAll('.cross_line').style('display', 'block')
           d3.select('.cross_line.x').attr('y1', pointer[1]).attr('y2', pointer[1])
           d3.select('.cross_line.y').attr('x1', pointer[0]).attr('x2', pointer[0])
+          d3.select(this).style('cursor', 'crosshair')
           if (initPoint) {
             let addingRect = d3.select('rect.region.adding')
             if (pointer[0] >= initPoint[0]) {

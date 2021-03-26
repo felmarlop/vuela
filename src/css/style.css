@@ -39,7 +39,6 @@
     fill: none;
     pointer-events: all;
     z-index: 3;
-    cursor: crosshair;
 }
 #app .image_dialog text.region_label,
 #app .image_dialog rect.region_label_background {
