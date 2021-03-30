@@ -11,7 +11,7 @@
           v-show="isLoaded"
         />
       </transition>
-      <v-btn icon dark small :style="editStyle" @click="openModal(true)" v-if="!expanded">
+      <v-btn icon dark small :style="editStyle" @click="openModal(true)" v-if="!expanded && isLoaded">
         <v-icon>mdi-pencil</v-icon>
       </v-btn>
     </div>
@@ -332,6 +332,7 @@ function zoom(cpnt, imgWrapper) {
         d3.select('rect.overlay').style('cursor', 'default')
         return false
       }
+      cpnt.unclickLabels()
       d3.select('rect.overlay').style('cursor', 'crosshair')
       if (initPoint) {
         cpnt.$emit('set-editing', false)
@@ -719,6 +720,18 @@ export default {
         .classed('adding', function (d) {
           return !d[0]
         })
+        .on('dblclick', function () {
+          if (!cpnt.regionEvents) return false
+          let idx = d3.select(this).attr('index'),
+            bck = imgWrapper.querySelectorAll('rect.region_label_background[index="' + idx + '"]')
+          cpnt.unclickLabels()
+          d3.selectAll(bck).classed('clicked', true)
+          cpnt.$emit(
+            'set-alert-message',
+            'You are <strong>editing a region label</strong>, type a new label or select one to change it.',
+            'info'
+          )
+        })
         .style('font-size', '0.98em')
         .style('stroke', 'rgb(255, 255, 255)')
         .style('color', 'rgb(255, 255, 255)')
@@ -744,6 +757,16 @@ export default {
         .attr('stroke', 'rgb(255, 255, 255)')
         .attr('stroke-width', 1)
         .attr('fill', 'rgb(0, 0, 0)')
+        .on('dblclick', function () {
+          if (!cpnt.regionEvents) return false
+          cpnt.unclickLabels()
+          d3.select(this).classed('clicked', true)
+          cpnt.$emit(
+            'set-alert-message',
+            'You are <strong>editing a region label</strong>, type a new label or select one to change it.',
+            'info'
+          )
+        })
         .style('opacity', function (d) {
           return d3.select(this).classed('new') || !d[0] ? 0 : 1
         })
@@ -833,6 +856,7 @@ export default {
         addingRect.remove()
         addingText.remove()
         addingBg.remove()
+        updateRegionElements(addingRect, this)
         this.$emit('set-alert-message', 'The region has to have <strong>some width and height</strong>', 'info')
         return false
       }
@@ -843,6 +867,46 @@ export default {
 
       updateRegionElements(addingRect, this)
       updateBirdData(this)
+    },
+    updateClickedLabel(lb) {
+      let d3Clicked = d3.select('rect.region_label_background.clicked')
+      if (!this.regionEvents || !lb || d3Clicked.empty()) return false
+
+      let imgWrapper = this.img.parentElement,
+        idx = d3Clicked.attr('index'),
+        d3Rect = d3.selectAll(imgWrapper.querySelectorAll('rect.region[index="' + idx + '"]')),
+        d3Text = d3.selectAll(imgWrapper.querySelectorAll('text.region_label[index="' + idx + '"]')),
+        d3Back = d3.selectAll(imgWrapper.querySelectorAll('rect.region_label_background[index="' + idx + '"]')),
+        rgD3 = d3Rect.data(),
+        newData,
+        colorFn
+      if (rgD3 && rgD3.length) {
+        colorFn = this.getColorFn(this.labelSet)
+        newData = [lb, rgD3[0][1], rgD3[0][2], rgD3[0][3], rgD3[0][4]]
+        d3Rect
+          .data([newData])
+          .attr('fill', function () {
+            return colorFn(lb)
+          })
+          .attr('stroke', function () {
+            return colorFn(lb)
+          })
+          .attr('fill', function () {
+            return colorFn(lb)
+          })
+        d3Text.data([newData])
+        d3Back.data([newData])
+        updateRegionElements(d3Rect, this)
+        updateBirdData(this)
+      }
+      this.unclickLabels()
+    },
+    unclickLabels: function () {
+      let clicked = d3.selectAll('.clicked')
+      if (!clicked.empty()) {
+        clicked.classed('clicked', false)
+        this.$emit('hide-alert-message')
+      }
     },
     onClickOutside: function () {
       if (this.raw && !d3.select('rect.region.adding').empty()) {
