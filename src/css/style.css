@@ -44,6 +44,11 @@
 #app .image_dialog rect.region_label_background {
     cursor: pointer;
 }
+#app .image_dialog rect.region_label_background.clicked {
+    stroke-width: 2;
+    stroke-dasharray: 4;
+    fill: rgba(0,0,0,0.6);
+}
 #app .image_dialog .delete_region{
     position: fixed;
     display: inline-block;

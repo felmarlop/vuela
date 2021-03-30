@@ -48,6 +48,7 @@
             @update-hidden-labels="updateHiddenLabels"
             @image-loaded="imgLoaded = true"
             @set-alert-message="setAlertMessage"
+            @hide-alert-message="alert = false"
             @set-zoom="setZoom"
             @set-show-labels="setShowLabels"
             @set-show-regions="setShowRegions"
@@ -166,6 +167,8 @@
             class="float-left ml-4 mt-4"
             :style="{ width: '70%' }"
             @change="addNewLabel($event)"
+            @focus="inputFocused = true"
+            @blur="inputFocused = false"
           ></v-text-field>
           <v-btn class="mt-6" icon outlined @click="selectedLabel = ''"><v-icon>mdi-close</v-icon></v-btn>
           <v-switch
@@ -279,8 +282,9 @@ export default {
       alert: false,
       alertMessage: '',
       alertMessageType: 'success',
-      selectedLabel: 'test_label',
+      selectedLabel: '',
       hiddenLabels: [],
+      inputFocused: false,
       showLabels: true,
       showRegions: true,
       editingMode: false,
@@ -317,13 +321,13 @@ export default {
       },
       set: function (idx) {
         if (idx >= 0 && idx < this.labels.length) this.selectedLabel = this.labels[idx]
+        if (this.$refs.birdComponent) this.$refs.birdComponent.updateClickedLabel(this.selectedLabel)
       }
     }
   },
   created: function () {
     let cpnt = this,
       args = { lbIndex: '', lbTimeout: undefined }
-    this.selectedLabel = this.labels.length ? this.labels[this.labels.length - 1] : ''
     window.addEventListener('keydown', function (event) {
       cpnt.shortcuts(event, args)
     })
@@ -344,6 +348,7 @@ export default {
         labelSet.push(newLabel)
         this.$emit('update-labels', labelSet)
       }
+      if (this.$refs.birdComponent) this.$refs.birdComponent.updateClickedLabel(newLabel)
     },
     labelContent: function (item, idx) {
       return '<span class="label_index">[' + idx + ']</span><span>' + item + '</span>'
@@ -409,7 +414,7 @@ export default {
       this.zoom = Math.round(val * 100) / 100
     },
     shortcuts: function (event, args) {
-      if (!this.dialog || !this.imgLoaded) return false
+      if (!this.dialog || !this.imgLoaded || this.inputFocused) return false
       let cpnt = this,
         kcode = event.keyCode
       if (event.shiftKey && event.ctrlKey) {
@@ -506,6 +511,7 @@ export default {
           case 27:
             if (this.$refs.birdComponent) {
               this.$refs.birdComponent.removeAddingRegion()
+              this.$refs.birdComponent.unclickLabels()
             }
             break
           // Next image (->, SPACE)

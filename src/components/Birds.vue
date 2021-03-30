@@ -45,8 +45,8 @@ export default {
   data: function () {
     return {
       birds: [],
-      labels: ['goshawk', 'golden', 'snake eagle', 'imperial', 'vulture', 'bonelli'],
-      hash: 'nEpbDVV2FsapcNUeQ6HCdWmQr3H',
+      labels: [],
+      hash: 'eEqnCcF7ERsy0Q8f5Zki0QSNmsR',
       selectedBird: null,
       birdIndex: 0,
       dialog: false,
@@ -71,11 +71,14 @@ export default {
 
       this.loadingMsg = 'Loading...'
       axios
-        .get('https://localhost:1026/andromeda/shared/source/' + this.hash + '?exclude=sources;parent_optype=!image')
+        .get(
+          'https://strato.dev.bigml.io/andromeda/shared/source/' + this.hash + '?exclude=sources;parent_optype=!image'
+        )
         .then(function (response) {
           let fields = response.data['fields'],
             preview = response.data['fields_preview'],
             idx = 0,
+            idxLb = 0,
             keys,
             ids,
             rgs
@@ -91,15 +94,23 @@ export default {
               idx++
             }
           }
-          if (ids && rgs && ids.length == rgs.length) {
+          if (ids) {
             idx = 0
             while (idx < ids.length) {
               cpnt.birds.push({
-                url: 'http://localhost:1025/shared/source/' + ids[idx] + '/image/source/' + cpnt.hash,
-                regions: rgs[idx]
+                url: 'https://strato.dev.bigml.com/shared/source/' + ids[idx] + '/image/source/' + cpnt.hash,
+                regions: rgs && rgs.length == ids.length ? rgs[idx] : []
               })
+              idxLb = 0
+              while (idxLb < rgs[idx].length) {
+                if (cpnt.labels.indexOf(rgs[idx][idxLb][0]) == -1) {
+                  cpnt.labels.push(rgs[idx][idxLb][0])
+                }
+                idxLb++
+              }
               idx++
             }
+            if (cpnt.labels.length) cpnt.$refs.idialog.selectedLabel = cpnt.labels[0]
           }
           cpnt.loadingMsg = cpnt.birds.length ? '' : 'There are no images'
         })
