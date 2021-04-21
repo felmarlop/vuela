@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="30px" height="30px" viewBox="0 0 30 30" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>icon_white_less_contrast</title>
+    <g id="icon_white_less_contrast" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group-8" transform="translate(6.000000, 6.000000)">
+            <g id="Group-5-Copy">
+                <circle id="Oval" stroke="#FFFFFF" stroke-width="2" cx="9" cy="9" r="9"></circle>
+                <path d="M8.98844607,2.2380995 C9.48853751,2.2380995 9.9759269,2.29248346 10.4450227,2.39565987 L2.39600644,10.4446761 C2.29283003,9.97558033 2.23844607,9.48819094 2.23844607,8.9880995 C2.23844607,5.26017744 5.26052401,2.2380995 8.98844607,2.2380995 Z" id="Combined-Shape" fill="#FFFFFF"></path>
+            </g>
+            <path d="M11.68125,8.08125 L6.31875,8.1 C5.8125,8.1 5.4,8.5125 5.4,9.01875 C5.4,9.525 5.8125,9.9375 6.31875,9.9375 L11.68125,9.91875 C12.1875,9.91875 12.6,9.50625 12.6,9 C12.6,8.49375 12.20625,8.08125 11.68125,8.08125 Z" id="Path-Copy-2" fill="#FFFFFF" fill-rule="nonzero"></path>
+        </g>
+    </g>
+</svg>
