@@ -9,13 +9,13 @@
   >
     <v-card>
       <v-toolbar dark color="secondary">
-        <v-btn icon dark @click="$emit('close-modal')">
+        <v-btn icon dark @click="closeModal()">
           <v-icon>mdi-close</v-icon>
         </v-btn>
         <v-toolbar-title>Image regions</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-toolbar-items>
-          <v-btn dark text @click="$emit('close-modal')">Close</v-btn>
+          <v-btn dark text @click="closeModal()">Close</v-btn>
         </v-toolbar-items>
       </v-toolbar>
       <v-subheader :style="{ height: '70px' }">
@@ -341,6 +341,11 @@ export default {
       this.alert = true
       this.alertMessage = msg
       this.alertMessageType = msgType || 'success'
+    },
+    closeModal: function () {
+      this.alert = false
+      this.alertMessage = ''
+      this.$emit('close-modal')
     },
     addNewLabel: function (newLabel) {
       let labelSet = this.labels.slice()

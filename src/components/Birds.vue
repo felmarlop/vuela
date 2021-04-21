@@ -46,7 +46,7 @@ export default {
     return {
       birds: [],
       labels: [],
-      hash: 'eEqnCcF7ERsy0Q8f5Zki0QSNmsR',
+      hash: 'weytKe3ITGJ05WpnPIsenHh1kAM',
       selectedBird: null,
       birdIndex: 0,
       dialog: false,
