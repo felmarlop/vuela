@@ -18,7 +18,7 @@
           <v-btn dark text @click="closeModal()">Close</v-btn>
         </v-toolbar-items>
       </v-toolbar>
-      <v-subheader :style="{ height: '70px' }">
+      <v-subheader :style="{ height: '70px' }" v-if="regionEvents">
         To draw your first region type a label, click the start point on the image, move and click the end point to
         finish.
       </v-subheader>

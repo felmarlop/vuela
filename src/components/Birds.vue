@@ -2,9 +2,10 @@
   <div class="birds_wrapper mt-6 mb-6">
     <v-text-field
       v-model="hash"
-      label="Type your BigML composite hash"
+      label="BigML composite hash"
       outlined
       :style="{ margin: '0 auto', width: '50%' }"
+      readonly
       @change="listBirds()"
     ></v-text-field>
     <transition-group name="image-list" class="birds" appear v-if="birds.length">
@@ -79,9 +80,9 @@ export default {
             preview = response.data['fields_preview'],
             idx = 0,
             idxLb = 0,
-            keys,
-            ids,
-            rgs
+            ids = [],
+            rgs = [],
+            keys
           if (preview) {
             keys = Object.keys(preview)
             while (idx < keys.length) {
@@ -102,11 +103,13 @@ export default {
                 regions: rgs && rgs.length == ids.length ? rgs[idx] : []
               })
               idxLb = 0
-              while (idxLb < rgs[idx].length) {
-                if (cpnt.labels.indexOf(rgs[idx][idxLb][0]) == -1) {
-                  cpnt.labels.push(rgs[idx][idxLb][0])
+              if (rgs.length) {
+                while (idxLb < rgs[idx].length) {
+                  if (cpnt.labels.indexOf(rgs[idx][idxLb][0]) == -1) {
+                    cpnt.labels.push(rgs[idx][idxLb][0])
+                  }
+                  idxLb++
                 }
-                idxLb++
               }
               idx++
             }
@@ -115,7 +118,7 @@ export default {
           cpnt.loadingMsg = cpnt.birds.length ? '' : 'There are no images'
         })
         .catch(function () {
-          cpnt.loadingMsg = 'An error happened retrieving the birds...'
+          cpnt.loadingMsg = 'An error happened retrieving the images...'
         })
     },
     shuffle: function (reset) {
